@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MMU Pickup</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  margin: 0;
+}
+
+header {
+  background: #4caf50;
+  color: white;
+  text-align: center;
+  padding: 15px;
+}
+
+.container {
+  padding: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: 15px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 5px;
+}
+
+.cart {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>MMU Pickup</header>
+
+<div class="container">
+
+<!-- Soy Milk -->
+<div class="card">
+  <img src="soy.jpg">
+  <h3>Soy Milk</h3>
+
+  <select id="soySize">
+    <option value="Small">Small RM3</option>
+    <option value="Large">Large RM5</option>
+  </select>
+
+  <button onclick="addSoy()">Add</button>
+</div>
+
+<!-- Matcha -->
+<div class="card">
+  <img src="matcha.jpg">
+  <h3>Matcha Soy</h3>
+
+  <select id="matchaSize">
+    <option value="Small">Small RM4</option>
+    <option value="Large">Large RM6</option>
+  </select>
+
+  <button onclick="addMatcha()">Add</button>
+</div>
+
+<!-- Oden -->
+<div class="card">
+  <img src="oden.jpg">
+  <h3>Oden Customize</h3>
+
+  <label><input type="checkbox" value="Fish Ball"> Fish Ball</label><br>
+  <label><input type="checkbox" value="Egg"> Egg</label><br>
+  <label><input type="checkbox" value="Tofu"> Tofu</label><br>
+
+  <button onclick="addOden()">Add Oden</button>
+</div>
+
+<!-- CART -->
+<h2>🛒 Cart</h2>
+<div id="cart" class="cart"></div>
+
+<button onclick="checkout()">Checkout</button>
+
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCrHpyeQLT6sJXFvJh2SVlvHLZ9O8TGoC4",
+  authDomain: "mmu-pickup.firebaseapp.com",
+  projectId: "mmu-pickup"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let cart = [];
+let lastRemoved = null;
+
+// 添加豆奶
+function addSoy(){
+  let size = document.getElementById("soySize").value;
+  let price = size === "Small" ? 3 : 5;
+
+  cart.push({name: "Soy Milk ("+size+")", price});
+  renderCart();
+}
+
+// 添加抹茶
+function addMatcha(){
+  let size = document.getElementById("matchaSize").value;
+  let price = size === "Small" ? 4 : 6;
+
+  cart.push({name: "Matcha ("+size+")", price});
+  renderCart();
+}
+
+// 添加 Oden
+function addOden(){
+  let checks = document.querySelectorAll("input[type=checkbox]:checked");
+  let items = [];
+
+  checks.forEach(c => items.push(c.value));
+
+  cart.push({
+    name: "Oden (" + items.join(", ") + ")",
+    price: 6
+  });
+
+  renderCart();
+}
+
+// 删除
+function removeItem(index){
+  lastRemoved = cart[index];
+  cart.splice(index,1);
+  renderCart();
+}
+
+// 撤回删除
+function undo(){
+  if(lastRemoved){
+    cart.push(lastRemoved);
+    lastRemoved = null;
+    renderCart();
+  }
+}
+
+// 渲染购物车
+function renderCart(){
+  let html = "";
+  let total = 0;
+
+  cart.forEach((item,i)=>{
+    total += item.price;
+    html += `
+      <div>
+        ${item.name} - RM${item.price}
+        <button onclick="removeItem(${i})">❌</button>
+      </div>
+    `;
+  });
+
+  html += `<hr>Total: RM${total}`;
+  html += `<br><button onclick="undo()">Undo</button>`;
+
+  document.getElementById("cart").innerHTML = html;
+}
+
+// 下单
+async function checkout(){
+  if(cart.length === 0){
+    alert("Cart kosong!");
+    return;
+  }
+
+  let orderId = "MMU" + Math.floor(Math.random()*10000);
+
+  await addDoc(collection(db, "orders"), {
+    id: orderId,
+    items: cart,
+    time: new Date()
+  });
+
+  alert("Order sent!");
+  cart = [];
+  renderCart();
+}
+
+window.addSoy = addSoy;
+window.addMatcha = addMatcha;
+window.addOden = addOden;
+window.removeItem = removeItem;
+window.undo = undo;
+window.checkout = checkout;
+
+</script>
+
+</body>
+</html>
