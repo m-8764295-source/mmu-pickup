@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MMU Order App</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f3ec;
+    }
+
+    header {
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .container {
+      padding: 15px;
+    }
+
+    .card {
+      background: #fffdf7;
+      border-radius: 20px;
+      padding: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    .title {
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .price {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    button {
+      background: #4CAF50;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 10px;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #fffdf7;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+
+    .nav button {
+      background: none;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .active {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .order-card {
+      background: #fffdf7;
+      padding: 10px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>🥛 MMU Soy & Oden</header>
+
+<!-- MENU -->
+<div class="container" id="menuPage">
+
+  <div class="card">
+    <img src="soy.jpg">
+    <div class="title">Soy Milk</div>
+    <div class="price">RM 3.50</div>
+    <button onclick="addToCart('Soy Milk',3.5)">Add</button>
+  </div>
+
+  <div class="card">
+    <img src="matcha.jpg">
+    <div class="title">Matcha Soy Milk</div>
+    <div class="price">RM 4.50</div>
+    <button onclick="addToCart('Matcha Soy Milk',4.5)">Add</button>
+  </div>
+
+  <div class="card">
+    <img src="oden.jpg">
+    <div class="title">Oden Bowl</div>
+    <div class="price">RM 6.90</div>
+    <button onclick="addToCart('Oden',6.9)">Add</button>
+  </div>
+
+</div>
+
+<!-- ORDERS -->
+<div class="container hidden" id="orderPage">
+  <h3>My Orders</h3>
+  <div id="orders"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button onclick="showMenu()" id="menuBtn" class="active">Home</button>
+  <button onclick="checkout()">Order</button>
+  <button onclick="showOrders()" id="orderBtn">Orders</button>
+</div>
+
+<script>
+let cart = [];
+let orders = [];
+
+function addToCart(name, price){
+  cart.push({name, price});
+  alert("Added!");
+}
+
+function checkout(){
+  if(cart.length === 0){
+    alert("Cart kosong!");
+    return;
+  }
+
+  let id = "MMU" + Math.floor(Math.random()*10000);
+
+  orders.push({
+    id: id,
+    items: [...cart]
+  });
+
+  cart = [];
+  alert("Order placed!");
+}
+
+function showOrders(){
+  document.getElementById("menuPage").classList.add("hidden");
+  document.getElementById("orderPage").classList.remove("hidden");
+
+  document.getElementById("menuBtn").classList.remove("active");
+  document.getElementById("orderBtn").classList.add("active");
+
+  let html = "";
+
+  orders.forEach(o=>{
+    html += `<div class="order-card">
+      <b>${o.id}</b><br>`;
+    o.items.forEach(i=>{
+      html += `${i.name} - RM${i.price}<br>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById("orders").innerHTML = html;
+}
+
+function showMenu(){
+  document.getElementById("menuPage").classList.remove("hidden");
+  document.getElementById("orderPage").classList.add("hidden");
+
+  document.getElementById("menuBtn").classList.add("active");
+  document.getElementById("orderBtn").classList.remove("active");
+}
+</script>
+
+</body>
+</html>
