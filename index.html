@@ -1761,50 +1761,48 @@
       <h2 class="success-title">Order Placed!</h2>
       <p class="success-sub">Your order is confirmed and being<br>prepared with love 🍵</p>
 
-      <div class="order-id-pill">Order #SOD-2024-091</div>
+      <div class="order-id-pill" id="success-order-code">Order Placed!</div>
 
       <div class="status-timeline">
-        <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Order Status</div>
-
-        <div class="status-step">
-          <div class="status-dot done">✅</div>
-          <div class="status-info">
-            <div class="status-name">Order Confirmed</div>
-            <div class="status-desc">Payment verified successfully</div>
-          </div>
-          <div class="status-time">2:14 PM</div>
-        </div>
-
-        <div class="status-step">
-          <div class="status-dot active">👨‍🍳</div>
-          <div class="status-info">
-            <div class="status-name">Preparing</div>
-            <div class="status-desc">Your drinks are being made</div>
-          </div>
-          <div class="status-time">Now</div>
-        </div>
-
-        <div class="status-step">
-          <div class="status-dot pending">🛍</div>
-          <div class="status-info">
-            <div class="status-name">Ready for Pickup</div>
-            <div class="status-desc">Est. 10–15 minutes</div>
-          </div>
-          <div class="status-time">~2:29 PM</div>
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Live Order Status</div>
+        <div id="live-status-steps">
+          <!-- Rendered by JS -->
         </div>
       </div>
 
       <div style="display:flex;gap:10px;width:100%;margin-top:20px;animation:fadeUp 0.4s ease 0.5s both;">
         <button onclick="goTo('menu')" style="flex:1;background:var(--white);border:1.5px solid var(--beige);border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text-mid);cursor:pointer;">+ New Order</button>
-        <button style="flex:1;background:var(--matcha);border:none;border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(122,158,90,0.3);">Track Order</button>
+        <button onclick="refreshStatus()" style="flex:1;background:var(--matcha);border:none;border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(122,158,90,0.3);">🔄 Refresh Status</button>
+      </div>
       </div>
     </div>
   </div>
 
 </div><!-- end phone-shell -->
 
-<script>
-  // ===== STATE =====
+<script type="module">
+  // ═══════════════════════════════════════════
+  //  FIREBASE SETUP
+  // ═══════════════════════════════════════════
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCkFmMpScduIj1493VWQdDCOAaTUWnWEbk",
+    authDomain: "mmu-delivery-a4919.firebaseapp.com",
+    projectId: "mmu-delivery-a4919",
+    storageBucket: "mmu-delivery-a4919.firebasestorage.app",
+    messagingSenderId: "945529333130",
+    appId: "1:945529333130:web:915bfd830b44de4e19d473"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ═══════════════════════════════════════════
+  //  APP STATE
+  // ═══════════════════════════════════════════
   let currentScreen = 'landing';
   let screenHistory = [];
   let orderType = 'pickup';
@@ -1812,8 +1810,12 @@
   let detailQty = 1;
   let detailBasePrice = 7.50;
   let currentDetailType = 'drink';
+  let currentOrderId = null;   // Firestore doc ID
+  let unsubscribeStatus = null;
 
-  // ===== NAVIGATION =====
+  // ═══════════════════════════════════════════
+  //  NAVIGATION
+  // ═══════════════════════════════════════════
   function goTo(screen) {
     const cur = document.querySelector('.screen.active');
     if (cur) {
@@ -1823,10 +1825,10 @@
     const next = document.getElementById('screen-' + screen);
     next.classList.add('active');
     currentScreen = screen;
-
     if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
   }
+  window.goTo = goTo;
 
   function goBack() {
     const prev = screenHistory.pop() || 'landing';
@@ -1835,6 +1837,7 @@
     document.getElementById('screen-' + prev).classList.add('active');
     currentScreen = prev;
   }
+  window.goBack = goBack;
 
   function goToMenu(type) {
     orderType = type;
@@ -1844,28 +1847,31 @@
     if (ci) ci.textContent = type === 'pickup' ? '🛍' : '🛵';
     goTo('menu');
   }
+  window.goToMenu = goToMenu;
 
   function switchTab(el, type) {
     document.querySelectorAll('.tab-chip').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
   }
+  window.switchTab = switchTab;
 
-  // ===== PRODUCT DETAIL =====
+  // ═══════════════════════════════════════════
+  //  PRODUCT DETAIL
+  // ═══════════════════════════════════════════
   const heroColors = {
-    '🍵': 'linear-gradient(135deg,#d4e8bc,#b8d4a0)',
-    '🥛': 'linear-gradient(135deg,#f0e6d3,#ddc9ae)',
-    '🍫': 'linear-gradient(135deg,#e8d0b8,#d4b894)',
-    '🫐': 'linear-gradient(135deg,#c8d8ee,#a8c0e0)',
-    '☕': 'linear-gradient(135deg,#d4c0a8,#b8a088)',
-    '🍢': 'linear-gradient(135deg,#f0d8c0,#e0c0a0)',
-    '🥛🍢': 'linear-gradient(135deg,#f5ede5,#e8ddd0)',
+    '🍵':'linear-gradient(135deg,#d4e8bc,#b8d4a0)',
+    '🥛':'linear-gradient(135deg,#f0e6d3,#ddc9ae)',
+    '🍫':'linear-gradient(135deg,#e8d0b8,#d4b894)',
+    '🫐':'linear-gradient(135deg,#c8d8ee,#a8c0e0)',
+    '☕':'linear-gradient(135deg,#d4c0a8,#b8a088)',
+    '🍢':'linear-gradient(135deg,#f0d8c0,#e0c0a0)',
+    '🥛🍢':'linear-gradient(135deg,#f5ede5,#e8ddd0)',
   };
 
   function openDetail(name, emoji, price, desc, type) {
     detailBasePrice = parseFloat(price.replace('RM ',''));
     detailQty = 1;
     currentDetailType = type;
-
     document.getElementById('detail-emoji').textContent = emoji;
     document.getElementById('detail-name').textContent = name;
     document.getElementById('detail-desc').textContent = desc;
@@ -1873,98 +1879,77 @@
     document.getElementById('detail-hero').style.background = heroColors[emoji] || heroColors['🥛'];
     document.getElementById('qty-num').textContent = '1';
     document.getElementById('detail-total').textContent = price;
-
     document.getElementById('drink-options').style.display = type === 'drink' ? 'block' : 'none';
-    document.getElementById('oden-options').style.display = type === 'oden' ? 'block' : 'none';
-
-    // store for add to cart
-    window._detailName = name;
+    document.getElementById('oden-options').style.display  = type === 'oden'  ? 'block' : 'none';
+    window._detailName  = name;
     window._detailEmoji = emoji;
     window._detailPrice = price;
-
     goTo('detail');
   }
+  window.openDetail = openDetail;
 
   function selectPill(el, group) {
     el.closest('.option-pills').querySelectorAll('.option-pill').forEach(p => p.classList.remove('selected'));
     el.classList.add('selected');
     updateDetailTotal();
   }
+  window.selectPill = selectPill;
 
   function toggleIngredient(el) {
     el.classList.toggle('selected');
     const chk = el.querySelector('.ingredient-check');
     chk.textContent = el.classList.contains('selected') ? '✓' : '';
   }
+  window.toggleIngredient = toggleIngredient;
 
   function changeQty(delta) {
     detailQty = Math.max(1, detailQty + delta);
     document.getElementById('qty-num').textContent = detailQty;
     updateDetailTotal();
   }
+  window.changeQty = changeQty;
 
   function updateDetailTotal() {
     let base = detailBasePrice;
-    const sizePill = document.querySelector('#drink-options .option-pills .option-pill.selected');
-    if (sizePill && sizePill.textContent.includes('Large')) base += 1.5;
+    const pills = document.querySelectorAll('#drink-options .option-pills .option-pill.selected');
+    pills.forEach(p => { if (p.textContent.includes('Large')) base += 1.5; });
     document.getElementById('detail-total').textContent = 'RM ' + (base * detailQty).toFixed(2);
   }
 
   function addToCart() {
     let base = detailBasePrice;
-    const sizePill = document.querySelector('#drink-options .option-pills:first-of-type .option-pill.selected');
     let customText = '';
-
     if (currentDetailType === 'drink') {
-      const size = document.querySelector('[onclick*="size"] .selected, #drink-options .option-pills:nth-child(1) .option-pill.selected');
-      const allPills = document.querySelectorAll('#drink-options .option-pills .option-pill.selected');
       const notes = [];
-      allPills.forEach(p => {
+      document.querySelectorAll('#drink-options .option-pills .option-pill.selected').forEach(p => {
         if (p.textContent.includes('Large')) { base += 1.5; notes.push('Large'); }
         else if (p.textContent.includes('Small')) notes.push('Small');
         else notes.push(p.textContent.replace(/[0-9%—]/g,'').trim());
       });
       customText = notes.filter(Boolean).join(' · ');
     } else {
-      const selected = document.querySelectorAll('#oden-options .ingredient-item.selected .ingredient-name');
-      customText = Array.from(selected).map(e => e.textContent).join(', ');
+      customText = Array.from(document.querySelectorAll('#oden-options .ingredient-item.selected .ingredient-name')).map(e => e.textContent).join(', ');
     }
-
-    cart.push({
-      name: window._detailName,
-      emoji: window._detailEmoji,
-      price: base,
-      qty: detailQty,
-      custom: customText,
-    });
-
+    cart.push({ name: window._detailName, emoji: window._detailEmoji, price: base, qty: detailQty, custom: customText });
     updateCartUI();
-
-    // Animate
     const btn = document.querySelector('#screen-detail .cta-btn');
     btn.textContent = '✓ Added!';
     btn.style.background = '#5a7d3c';
-    setTimeout(() => {
-      btn.textContent = 'Add to Cart 🛒';
-      btn.style.background = '';
-      goBack();
-    }, 800);
+    setTimeout(() => { btn.textContent = 'Add to Cart 🛒'; btn.style.background = ''; goBack(); }, 800);
   }
+  window.addToCart = addToCart;
 
   function quickAdd(e, name, price, emoji) {
     e.stopPropagation();
     cart.push({ name, emoji, price, qty: 1, custom: 'Small · 50% · Less Ice' });
     updateCartUI();
     const btn = e.target;
-    btn.textContent = '✓';
-    btn.style.background = '#5a7d3c';
+    btn.textContent = '✓'; btn.style.background = '#5a7d3c';
     setTimeout(() => { btn.textContent = '+'; btn.style.background = ''; }, 600);
-    const fc = document.getElementById('floating-cart');
-    fc.style.animation = 'none';
-    setTimeout(() => fc.style.animation = '', 10);
     document.querySelector('.cart-icon-wrap').style.animation = 'cartBounce 0.4s ease';
     setTimeout(() => document.querySelector('.cart-icon-wrap').style.animation = '', 400);
   }
+  window.quickAdd = quickAdd;
 
   function updateCartUI() {
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -1976,18 +1961,17 @@
     fc.style.display = count > 0 ? 'flex' : 'none';
   }
 
-  // ===== CART =====
+  // ═══════════════════════════════════════════
+  //  CART
+  // ═══════════════════════════════════════════
   function renderCart() {
     const list = document.getElementById('cart-list');
-    let total = 0;
-    let html = '';
-
+    let total = 0, html = '';
     if (cart.length === 0) {
       html = `<div style="text-align:center;padding:60px 24px;color:var(--text-muted);">
         <div style="font-size:48px;margin-bottom:12px;">🛒</div>
         <div style="font-size:15px;font-weight:600;color:var(--text-mid);margin-bottom:6px;">Your cart is empty</div>
-        <div style="font-size:13px;">Add items from the menu to get started</div>
-      </div>`;
+        <div style="font-size:13px;">Add items from the menu to get started</div></div>`;
     } else {
       cart.forEach((item, i) => {
         total += item.price * item.qty;
@@ -2008,65 +1992,132 @@
           </div>
         </div>`;
       });
-
       html += `<div class="order-summary-card">
-        <div class="summary-row"><span>Subtotal (${cart.reduce((s,i)=>s+i.qty,0)} items)</span><span>RM ${total.toFixed(2)}</span></div>
+        <div class="summary-row"><span>Subtotal</span><span>RM ${total.toFixed(2)}</span></div>
         <div class="summary-row"><span>Service Fee</span><span>RM 0.50</span></div>
         <div class="summary-row" style="${orderType==='delivery'?'':'display:none'}"><span>Delivery Fee</span><span>RM 2.00</span></div>
-        <div class="summary-row total"><span>Total</span><span>RM ${(total + 0.50 + (orderType==='delivery'?2:0)).toFixed(2)}</span></div>
+        <div class="summary-row total"><span>Total</span><span>RM ${(total+0.50+(orderType==='delivery'?2:0)).toFixed(2)}</span></div>
       </div>`;
     }
-
     list.innerHTML = html;
-    const grandTotal = total + 0.50 + (orderType === 'delivery' ? 2 : 0);
-    document.getElementById('cart-total-bar').textContent = 'RM ' + grandTotal.toFixed(2);
+    document.getElementById('cart-total-bar').textContent = 'RM ' + (total+0.50+(orderType==='delivery'?2:0)).toFixed(2);
   }
 
-  function cartQty(i, d) {
-    cart[i].qty = Math.max(1, cart[i].qty + d);
-    updateCartUI();
-    renderCart();
-  }
+  function cartQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); updateCartUI(); renderCart(); }
+  function removeItem(i) { cart.splice(i, 1); updateCartUI(); renderCart(); }
+  window.cartQty = cartQty;
+  window.removeItem = removeItem;
 
-  function removeItem(i) {
-    cart.splice(i, 1);
-    updateCartUI();
-    renderCart();
-  }
-
-  // ===== CHECKOUT =====
+  // ═══════════════════════════════════════════
+  //  CHECKOUT
+  // ═══════════════════════════════════════════
   function renderCheckout() {
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const grandTotal = total + 0.50 + (orderType === 'delivery' ? 2 : 0);
-
-    let summHtml = cart.map(item =>
+    document.getElementById('checkout-summary').innerHTML = cart.map(item =>
       `<div class="summary-row"><span>${item.name} ×${item.qty}</span><span>RM ${(item.price*item.qty).toFixed(2)}</span></div>`
     ).join('');
-
-    document.getElementById('checkout-summary').innerHTML = summHtml;
     document.getElementById('co-subtotal').textContent = 'RM ' + total.toFixed(2);
-    document.getElementById('co-total').textContent = 'RM ' + grandTotal.toFixed(2);
-    document.getElementById('co-pay').textContent = 'RM ' + grandTotal.toFixed(2);
+    document.getElementById('co-total').textContent    = 'RM ' + grandTotal.toFixed(2);
+    document.getElementById('co-pay').textContent      = 'RM ' + grandTotal.toFixed(2);
     document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
-    document.getElementById('checkout-icon').textContent = orderType === 'pickup' ? '🛍' : '🛵';
-
-    // Set payment screen amount
-    document.getElementById('qr-amount').textContent = 'RM ' + grandTotal.toFixed(2);
+    document.getElementById('checkout-icon').textContent   = orderType === 'pickup' ? '🛍' : '🛵';
+    document.getElementById('qr-amount').textContent       = 'RM ' + grandTotal.toFixed(2);
   }
 
-  // ===== PAYMENT =====
-  function markPaid() {
+  // ═══════════════════════════════════════════
+  //  PAYMENT → FIREBASE
+  // ═══════════════════════════════════════════
+  async function markPaid() {
     const btn = document.querySelector('.paid-btn');
     btn.textContent = '⏳ Submitting…';
     btn.style.background = 'var(--milo)';
     btn.disabled = true;
-
     document.getElementById('waiting-banner').style.display = 'flex';
 
-    setTimeout(() => {
+    const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const grandTotal = total + 0.50 + (orderType === 'delivery' ? 2 : 0);
+    const customerName  = document.getElementById('field-name').value.trim()  || 'Customer';
+    const customerPhone = document.getElementById('field-phone').value.trim() || '-';
+
+    const orderData = {
+      code:          'SOD-' + String(Date.now()).slice(-4),
+      name:          customerName,
+      phone:         customerPhone,
+      type:          orderType,
+      address:       orderType === 'delivery' ? 'MMU Campus' : null,
+      items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard' })),
+      total:         grandTotal,
+      status:        'new',
+      rider:         null,
+      paymentMethod: 'TNG',
+      paymentStatus: 'pending_verification',
+      timestamp:     serverTimestamp(),
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      currentOrderId = docRef.id;
+
+      // ── Listen for status changes from boss ──
+      startStatusTracking(currentOrderId);
+
       goTo('success');
-    }, 2200);
+      cart = [];
+      updateCartUI();
+      document.getElementById('success-order-code').textContent = 'Order #' + orderData.code;
+    } catch (err) {
+      console.error('Firebase error:', err);
+      btn.textContent = '❌ Failed. Try again';
+      btn.style.background = '#E8654A';
+      btn.disabled = false;
+      document.getElementById('waiting-banner').style.display = 'none';
+    }
   }
+  window.markPaid = markPaid;
+
+  // ═══════════════════════════════════════════
+  //  LIVE STATUS TRACKING (Firestore realtime)
+  // ═══════════════════════════════════════════
+  function startStatusTracking(docId) {
+    if (unsubscribeStatus) unsubscribeStatus();
+    const orderRef = doc(db, 'orders', docId);
+    unsubscribeStatus = onSnapshot(orderRef, (snap) => {
+      if (!snap.exists()) return;
+      renderLiveStatus(snap.data());
+    });
+  }
+
+  function renderLiveStatus(order) {
+    const allSteps = [
+      { key: 'new',        icon: '🧾', label: 'Order Confirmed',  desc: 'Payment received — thank you!' },
+      { key: 'preparing',  icon: '👨‍🍳', label: 'Preparing',        desc: 'Your order is being made fresh' },
+      { key: 'ready',      icon: '✅', label: 'Ready!',            desc: order.type === 'delivery' ? 'Rider coming to pick up' : 'Please come collect at counter 😊' },
+      { key: 'delivering', icon: '🛵', label: 'On the Way',        desc: order.rider ? 'Rider: ' + order.rider : 'Rider heading to you' },
+      { key: 'done',       icon: '🎉', label: 'Delivered!',        desc: 'Enjoy your Soy & Oden! 🍵' },
+    ];
+    const steps = order.type === 'pickup' ? allSteps.filter(s => s.key !== 'delivering') : allSteps;
+    const statusOrder = ['new','preparing','ready','delivering','done'];
+    const curIdx = statusOrder.indexOf(order.status);
+
+    document.getElementById('live-status-steps').innerHTML = steps.map(step => {
+      const sIdx    = statusOrder.indexOf(step.key);
+      const isDone  = sIdx < curIdx;
+      const isActive = step.key === order.status;
+      const isPending = sIdx > curIdx;
+      return `<div class="status-step">
+        <div class="status-dot ${isDone?'done':isActive?'active':'pending'}">${isDone?'✅':step.icon}</div>
+        <div class="status-info">
+          <div class="status-name" style="color:${isActive?'var(--matcha)':isPending?'var(--text-muted)':'var(--text-dark)'}">${step.label}</div>
+          <div class="status-desc">${step.desc}</div>
+        </div>
+        <div class="status-time" style="color:${isActive?'var(--matcha)':'var(--text-muted)'}">
+          ${isActive?'● Now':isDone?'✓':''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  window.refreshStatus = () => {}; // no-op, Firestore handles it
 </script>
 </body>
 </html>
