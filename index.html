@@ -1303,6 +1303,24 @@
     margin: 12px 0;
   }
 
+  .addr-chip {
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid var(--beige);
+    background: var(--white);
+    color: var(--text-mid);
+    transition: all 0.15s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .addr-chip:active, .addr-chip.selected {
+    background: var(--matcha-pale);
+    border-color: var(--matcha);
+    color: var(--matcha);
+  }
+
   /* nav indicator */
   .nav-dots {
     position: absolute;
@@ -1654,6 +1672,21 @@
         <div class="field-group">
           <label class="field-label">Phone Number</label>
           <input class="field-input" type="tel" placeholder="+60 12-345 6789" id="field-phone">
+        </div>
+
+        <!-- Delivery address — only shown for delivery orders -->
+        <div class="field-group" id="address-group" style="display:none;">
+          <label class="field-label">📍 Delivery Address</label>
+          <input class="field-input" type="text" placeholder="e.g. V5 Room 203, MMU Cyberjaya" id="field-address" style="margin-bottom:8px;">
+          <!-- Quick pick shortcuts -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;" id="address-shortcuts">
+            <button onclick="pickAddress('V1 Residence')"    class="addr-chip">🏠 V1</button>
+            <button onclick="pickAddress('V5 Residence')"    class="addr-chip">🏠 V5</button>
+            <button onclick="pickAddress('DPP Cyber 11')"    class="addr-chip">🏠 DPP C11</button>
+            <button onclick="pickAddress('DPP Cyber 12')"    class="addr-chip">🏠 DPP C12</button>
+            <button onclick="pickAddress('MMU Library')"     class="addr-chip">📚 Library</button>
+            <button onclick="pickAddress('Block A Cyber 6')" class="addr-chip">🏢 Block A</button>
+          </div>
         </div>
       </div>
 
@@ -2023,7 +2056,17 @@
     document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
     document.getElementById('checkout-icon').textContent   = orderType === 'pickup' ? '🛍' : '🛵';
     document.getElementById('qr-amount').textContent       = 'RM ' + grandTotal.toFixed(2);
+
+    // Show address field only for delivery
+    document.getElementById('address-group').style.display = orderType === 'delivery' ? 'block' : 'none';
   }
+
+  function pickAddress(addr) {
+    document.getElementById('field-address').value = addr;
+    document.querySelectorAll('.addr-chip').forEach(c => c.classList.remove('selected'));
+    event.target.classList.add('selected');
+  }
+  window.pickAddress = pickAddress;
 
   // ═══════════════════════════════════════════
   //  PAYMENT → FIREBASE
@@ -2037,15 +2080,33 @@
 
     const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const grandTotal = total + 0.50 + (orderType === 'delivery' ? 2 : 0);
-    const customerName  = document.getElementById('field-name').value.trim()  || 'Customer';
-    const customerPhone = document.getElementById('field-phone').value.trim() || '-';
+    const customerName  = document.getElementById('field-name').value.trim()    || 'Customer';
+    const customerPhone = document.getElementById('field-phone').value.trim()   || '-';
+    const customerAddress = orderType === 'delivery'
+      ? (document.getElementById('field-address').value.trim() || 'MMU Campus')
+      : null;
+
+    // Validate address for delivery
+    if (orderType === 'delivery' && !document.getElementById('field-address').value.trim()) {
+      btn.textContent = '✓  I Have Paid';
+      btn.style.background = '';
+      btn.disabled = false;
+      document.getElementById('waiting-banner').style.display = 'none';
+      // Highlight the address field
+      const af = document.getElementById('field-address');
+      af.style.borderColor = '#E8654A';
+      af.placeholder = '⚠️ Please enter your delivery address!';
+      af.focus();
+      setTimeout(() => { af.style.borderColor = ''; af.placeholder = 'e.g. V5 Room 203, MMU Cyberjaya'; }, 3000);
+      return;
+    }
 
     const orderData = {
       code:          'SOD-' + String(Date.now()).slice(-4),
       name:          customerName,
       phone:         customerPhone,
       type:          orderType,
-      address:       orderType === 'delivery' ? 'MMU Campus' : null,
+      address:       customerAddress,
       items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard' })),
       total:         grandTotal,
       status:        'new',
@@ -2058,10 +2119,7 @@
     try {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       currentOrderId = docRef.id;
-
-      // ── Listen for status changes from boss ──
       startStatusTracking(currentOrderId);
-
       goTo('success');
       cart = [];
       updateCartUI();
