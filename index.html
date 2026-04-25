@@ -2104,16 +2104,20 @@
 
         <!-- Step 1: Upload screenshot -->
         <div style="margin-bottom:10px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">
-            Step 1 — Upload TNG Screenshot
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+            <span>Step 1 — Upload TNG Screenshot</span>
+            <span style="color:#E8654A;font-weight:700;letter-spacing:0;">Max 3 MB</span>
           </div>
           <div class="upload-zone" id="upload-zone" onclick="document.getElementById('screenshot-input').click()">
             <input type="file" id="screenshot-input" accept="image/*" onchange="handleScreenshotUpload(event)">
             <img id="upload-preview" class="upload-preview">
             <div id="upload-placeholder">
               <div style="font-size:28px;margin-bottom:6px;">📎</div>
-              <div style="font-size:14px;font-weight:600;color:var(--text-mid);">Tap to upload screenshot</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">TNG payment receipt required</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text-mid);">Tap to upload TNG screenshot</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.6;">
+                Receipt must show <b>amount</b> &amp; <b>time</b><br>
+                <span style="color:#E8654A;font-weight:600;">Max: 3 MB</span> · JPG / PNG only
+              </div>
             </div>
           </div>
         </div>
@@ -2556,25 +2560,24 @@
 
     // ── File size check BEFORE anything else ──
     const sizeMB = (file.size / 1024 / 1024).toFixed(1);
-    const MAX_MB = 10;
+    const MAX_MB = 3;
 
     if (file.size > MAX_MB * 1024 * 1024) {
-      // Show error — file too big
       const resultCard  = document.getElementById('ai-result');
       const resultTitle = document.getElementById('ai-result-title');
       const resultRows  = document.getElementById('ai-result-rows');
       resultCard.style.display = 'block';
       resultCard.className = 'ai-result fail';
-      resultTitle.textContent = '❌ File too large — ' + sizeMB + ' MB';
+      resultTitle.textContent = '❌ File too large (' + sizeMB + ' MB)';
       resultRows.innerHTML = `
-        <div style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.7;">
-          Your screenshot is <b style="color:#E8654A;">${sizeMB} MB</b> — maximum allowed is <b>${MAX_MB} MB</b>.<br><br>
-          Please compress it first:<br>
-          • On iPhone: use <b>Files app</b> → share → compress<br>
-          • On Android: use <b>Gallery</b> → edit → resize to 50%<br>
-          • Or take a screenshot of the receipt (usually smaller)
+        <div style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;">
+          ⚠️ Maximum allowed size is <b style="color:#E8654A;">3 MB</b><br>
+          Your file is <b style="color:#E8654A;">${sizeMB} MB</b><br><br>
+          <b>How to reduce size:</b><br>
+          📱 <b>iPhone:</b> Screenshot → share → save as smaller size<br>
+          📱 <b>Android:</b> Gallery → edit → resize to 50%<br>
+          💡 <b>Tip:</b> Take a fresh screenshot of TNG receipt — usually under 2 MB
         </div>`;
-      // Reset input
       event.target.value = '';
       return;
     }
