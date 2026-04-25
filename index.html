@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 
 <!-- ── PWA ── -->
 <link rel="manifest" href="/manifest.json">
@@ -49,34 +49,25 @@
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: #2C2420;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background: var(--cream);
     min-height: 100vh;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
   }
 
   .phone-shell {
-    width: 390px;
-    height: 844px;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     background: var(--cream);
-    border-radius: 50px;
+    border-radius: 0;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08) inset;
   }
 
   .phone-notch {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 34px;
-    background: #1a1a1a;
-    border-radius: 0 0 20px 20px;
-    z-index: 100;
+    display: none;
   }
 
   .screen {
@@ -2059,17 +2050,24 @@
 
       <div class="section-card">
         <div class="section-card-title">Payment Method</div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bpea-pale);border-radius:var(--radius-sm);border:1.5px solid rgba(91,127,166,0.25);">
-          <div style="width:36px;height:36px;background:#1C6EC5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
-          <div>
-            <div style="font-size:14px;font-weight:600;color:var(--text-dark);">Touch 'n Go eWallet</div>
-            <div style="font-size:12px;color:var(--text-muted);">Scan QR to pay</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <!-- TNG -->
+          <div id="pay-tng-btn" onclick="selectPayMethod('tng')"
+            style="border:2px solid var(--matcha);border-radius:var(--radius-md);padding:13px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:var(--matcha-pale);transition:all .15s;">
+            <div style="font-size:24px;">💳</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-dark);text-align:center;">Touch 'n Go</div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;">eWallet / QR</div>
           </div>
-          <div style="margin-left:auto;">
-            <div style="width:18px;height:18px;border-radius:50%;background:var(--matcha);display:flex;align-items:center;justify-content:center;">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
+          <!-- Cash -->
+          <div id="pay-cash-btn" onclick="selectPayMethod('cash')"
+            style="border:2px solid var(--beige);border-radius:var(--radius-md);padding:13px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:var(--white);transition:all .15s;">
+            <div style="font-size:24px;">💵</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-dark);text-align:center;">Cash</div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;">Pick Up only</div>
           </div>
+        </div>
+        <div id="cash-note" style="display:none;margin-top:8px;background:#FFF8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:var(--milo);">
+          💵 Pay cash when you collect at the stall. No upload needed.
         </div>
       </div>
     </div>
@@ -2079,7 +2077,7 @@
         <span class="sticky-price-label">To Pay</span>
         <span class="sticky-price-val" id="co-pay">RM 0.00</span>
       </div>
-      <button class="cta-btn" onclick="goTo('payment')">Proceed to Pay</button>
+      <button class="cta-btn" id="checkout-proceed-btn" onclick="proceedFromCheckout()">Proceed to Pay →</button>
     </div>
   </div>
 
@@ -2296,12 +2294,161 @@
   }
   window.goBack = goBack;
 
+  // ═══════════════════════════════════════════
+  //  PAYMENT METHOD SELECTION
+  // ═══════════════════════════════════════════
+  let payMethod = 'tng'; // default
+
+  function selectPayMethod(method) {
+    payMethod = method;
+    const tngBtn  = document.getElementById('pay-tng-btn');
+    const cashBtn = document.getElementById('pay-cash-btn');
+    const cashNote = document.getElementById('cash-note');
+    const proceedBtn = document.getElementById('checkout-proceed-btn');
+
+    if (method === 'tng') {
+      tngBtn.style.borderColor  = 'var(--matcha)';
+      tngBtn.style.background   = 'var(--matcha-pale)';
+      cashBtn.style.borderColor = 'var(--beige)';
+      cashBtn.style.background  = 'var(--white)';
+      cashNote.style.display    = 'none';
+      proceedBtn.textContent    = 'Proceed to Pay →';
+    } else {
+      cashBtn.style.borderColor = 'var(--matcha)';
+      cashBtn.style.background  = 'var(--matcha-pale)';
+      tngBtn.style.borderColor  = 'var(--beige)';
+      tngBtn.style.background   = 'var(--white)';
+      cashNote.style.display    = 'block';
+      proceedBtn.textContent    = 'Place Order →';
+    }
+  }
+  window.selectPayMethod = selectPayMethod;
+
+  function showToastMsg(msg) {
+    const existing = document.getElementById('inline-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.id = 'inline-toast';
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#2C2420;color:#fff;padding:10px 18px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  // ═══════════════════════════════════════════
+  //  PROCEED FROM CHECKOUT — validate first
+  // ═══════════════════════════════════════════
+  function proceedFromCheckout() {
+    const name    = document.getElementById('field-name').value.trim();
+    const phone   = document.getElementById('field-phone').value.trim();
+    const address = document.getElementById('field-address')?.value.trim();
+
+    // Validate name
+    if (!name) {
+      const nf = document.getElementById('field-name');
+      nf.style.borderColor = '#E8654A';
+      nf.placeholder = '⚠️ Name is required!';
+      nf.focus();
+      setTimeout(() => { nf.style.borderColor = ''; nf.placeholder = 'e.g. Azri Hakim'; }, 3000);
+      return;
+    }
+
+    // Validate phone
+    if (!phone) {
+      const pf = document.getElementById('field-phone');
+      pf.style.borderColor = '#E8654A';
+      pf.placeholder = '⚠️ Phone number is required!';
+      pf.focus();
+      setTimeout(() => { pf.style.borderColor = ''; pf.placeholder = '+60 12-345 6789'; }, 3000);
+      return;
+    }
+
+    // Validate address for delivery
+    if (orderType === 'delivery' && !address) {
+      const af = document.getElementById('field-address');
+      af.style.borderColor = '#E8654A';
+      af.placeholder = '⚠️ Delivery address is required!';
+      af.focus();
+      setTimeout(() => { af.style.borderColor = ''; af.placeholder = 'e.g. V5 Room 203, MMU Cyberjaya'; }, 3000);
+      return;
+    }
+
+    // Cash + pickup → skip payment screen, go straight to confirm
+    if (payMethod === 'cash' && orderType === 'pickup') {
+      submitCashOrder();
+    } else {
+      goTo('payment');
+    }
+  }
+  window.proceedFromCheckout = proceedFromCheckout;
+
+  // ═══════════════════════════════════════════
+  //  CASH ORDER SUBMIT (no screenshot needed)
+  // ═══════════════════════════════════════════
+  async function submitCashOrder() {
+    const btn = document.getElementById('checkout-proceed-btn');
+    btn.textContent = '⏳ Placing order…';
+    btn.disabled = true;
+
+    const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const grandTotal = total + 0.50;
+    const customerName  = document.getElementById('field-name').value.trim();
+    const customerPhone = document.getElementById('field-phone').value.trim();
+
+    const orderData = {
+      code:          'SOD-' + String(Date.now()).slice(-4),
+      name:          customerName,
+      phone:         customerPhone,
+      type:          'pickup',
+      address:       null,
+      items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard' })),
+      total:         grandTotal,
+      status:        'new',
+      rider:         null,
+      paymentMethod: 'Cash',
+      paymentStatus: 'pay_at_counter',
+      timestamp:     serverTimestamp(),
+    };
+
+    try {
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      currentOrderId = docRef.id;
+      startStatusTracking(currentOrderId);
+      goTo('success');
+      cart = [];
+      updateCartUI();
+      document.getElementById('success-order-code').textContent = 'Order #' + orderData.code;
+    } catch (err) {
+      console.error('Cash order error:', err);
+      btn.textContent = '❌ Failed. Try again';
+      btn.disabled = false;
+    }
+  }
+  window.submitCashOrder = submitCashOrder;
+
   function goToMenu(type) {
     orderType = type;
     const co = document.getElementById('checkout-method');
     const ci = document.getElementById('checkout-icon');
     if (co) co.textContent = type === 'pickup' ? 'Pick Up' : 'Delivery';
     if (ci) ci.textContent = type === 'pickup' ? '🛍' : '🛵';
+
+    // Delivery → hide Cash button, reset to TNG
+    const cashBtn  = document.getElementById('pay-cash-btn');
+    const cashNote = document.getElementById('cash-note');
+    const tngBtn   = document.getElementById('pay-tng-btn');
+    if (type === 'delivery') {
+      if (cashBtn)  cashBtn.style.display  = 'none';
+      if (cashNote) cashNote.style.display = 'none';
+      payMethod = 'tng';
+      if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
+      const pb = document.getElementById('checkout-proceed-btn');
+      if (pb) pb.textContent = 'Proceed to Pay →';
+    } else {
+      // Pickup → show Cash button
+      if (cashBtn) cashBtn.style.display = 'flex';
+    }
+
     goTo('menu');
   }
   window.goToMenu = goToMenu;
@@ -2360,15 +2507,29 @@
   function confirmOrderType() {
     if (!pendingOrderType) return;
     orderType = pendingOrderType;
-    // Update checkout display
     const co = document.getElementById('checkout-method');
     const ci = document.getElementById('checkout-icon');
     if (co) co.textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
     if (ci) ci.textContent = orderType === 'pickup' ? '🛍' : '🛵';
-    // Show/hide address field
     const ag = document.getElementById('address-group');
     if (ag) ag.style.display = orderType === 'delivery' ? 'block' : 'none';
-    // Recalculate totals
+
+    // Show/hide Cash option
+    const cashBtn  = document.getElementById('pay-cash-btn');
+    const cashNote = document.getElementById('cash-note');
+    const tngBtn   = document.getElementById('pay-tng-btn');
+    if (orderType === 'delivery') {
+      if (cashBtn)  cashBtn.style.display  = 'none';
+      if (cashNote) cashNote.style.display = 'none';
+      payMethod = 'tng';
+      if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
+      if (cashBtn) { cashBtn.style.borderColor = 'var(--beige)'; cashBtn.style.background = 'var(--white)'; }
+      const pb = document.getElementById('checkout-proceed-btn');
+      if (pb) pb.textContent = 'Proceed to Pay →';
+    } else {
+      if (cashBtn) cashBtn.style.display = 'flex';
+    }
+
     renderCheckout();
     document.getElementById('order-type-modal').style.display = 'none';
     pendingOrderType = null;
