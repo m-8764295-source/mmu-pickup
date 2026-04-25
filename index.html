@@ -2563,11 +2563,8 @@
     const MAX_MB = 3;
 
     if (file.size > MAX_MB * 1024 * 1024) {
-      const resultCard  = document.getElementById('ai-result');
-      const resultTitle = document.getElementById('ai-result-title');
-      const resultRows  = document.getElementById('ai-result-rows');
-      resultCard.style.display = 'block';
-      resultCard.className = 'ai-result fail';
+      document.getElementById('ai-result').style.display = 'block';
+      document.getElementById('ai-result').className = 'ai-result fail';
       resultTitle.textContent = '❌ File too large (' + sizeMB + ' MB)';
       resultRows.innerHTML = `
         <div style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;">
@@ -2606,153 +2603,38 @@
       document.getElementById('upload-placeholder').style.display = 'none';
       document.getElementById('upload-zone').classList.add('has-image');
 
-      // Show compressed size info
-      const resultCard = document.getElementById('ai-result');
-      resultCard.style.display = 'block';
-      resultCard.className = 'ai-result checking';
-      document.getElementById('ai-result-title').textContent = '🤖 Verifying receipt… (~' + compressedKB + ' KB)';
-      document.getElementById('ai-result-rows').innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">Checking amount and timestamp…</div>';
+      // ── No AI — unlock submit immediately ──
+      const resultCard  = document.getElementById('ai-result');
+      const resultTitle = document.getElementById('ai-result-title');
+      const resultRows  = document.getElementById('ai-result-rows');
+      const paidBtn     = document.getElementById('paid-btn');
 
-      verifyPaymentWithAI();
+      resultCard.style.display = 'block';
+      resultCard.className = 'ai-result pass';
+      resultTitle.textContent = '📎 Screenshot uploaded successfully';
+      resultRows.innerHTML = `
+        <div class="ai-result-row">
+          <span class="label">File size</span>
+          <span class="val ok">~${compressedKB} KB ✓</span>
+        </div>
+        <div class="ai-result-row">
+          <span class="label">Status</span>
+          <span class="val ok">Ready to submit ✓</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">
+          Boss will verify your payment receipt manually.
+        </div>`;
+
+      paymentVerified = true;
+      paidBtn.disabled = false;
+      paidBtn.style.opacity = '1';
+      paidBtn.style.cursor = 'pointer';
+      paidBtn.textContent = '✓  Confirm & Submit Order';
     };
     img.src = url;
   }
   window.handleScreenshotUpload = handleScreenshotUpload;
 
-  async function verifyPaymentWithAI() {
-    const resultCard  = document.getElementById('ai-result');
-    const resultTitle = document.getElementById('ai-result-title');
-    const resultRows  = document.getElementById('ai-result-rows');
-    const paidBtn     = document.getElementById('paid-btn');
-
-    const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const grandTotal = (total + 0.50 + (orderType === 'delivery' ? 2 : 0)).toFixed(2);
-
-    // Show checking state — lock button
-    resultCard.style.display = 'block';
-    resultCard.className = 'ai-result checking';
-    resultTitle.textContent = '🤖 AI is verifying your receipt…';
-    resultRows.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">Checking payment amount and timestamp…</div>';
-    paidBtn.disabled = true;
-    paidBtn.style.opacity = '0.4';
-    paidBtn.style.cursor = 'not-allowed';
-    paymentVerified = false;
-
-    try {
-      const now = new Date();
-      const prompt = `You are a strict payment verification AI for MIDI food delivery.
-Analyse this payment screenshot carefully.
-
-Check:
-1. Is this a real TNG (Touch n Go) / DuitNow payment receipt? (not a menu, not a random image)
-2. What is the payment AMOUNT in RM?
-3. What is the payment DATE and TIME?
-
-Rules:
-- Expected amount: RM ${grandTotal}
-- Current time: ${now.toLocaleString('en-MY')}
-- Payment must be within the last 60 minutes
-- Amount must match exactly (±0.01 allowed for rounding)
-- If image is NOT a payment receipt → verdict FAIL
-
-Respond ONLY in this exact JSON, no other text:
-{"amount_found":"RM X.XX","amount_match":true,"time_found":"DD/MM/YYYY HH:MM","time_recent":true,"looks_genuine":true,"verdict":"PASS","reason":"Payment verified"}`;
-
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 300,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: screenshotBase64 } },
-              { type: 'text', text: prompt }
-            ]
-          }]
-        })
-      });
-
-      if (!response.ok) throw new Error('API error ' + response.status);
-
-      const data   = await response.json();
-      const text   = data.content?.[0]?.text || '';
-      const jMatch = text.match(/\{[\s\S]*?\}/);
-      if (!jMatch) throw new Error('Cannot parse response');
-      const r = JSON.parse(jMatch[0]);
-
-      const pass = r.verdict === 'PASS'
-                && r.amount_match === true
-                && r.time_recent  === true
-                && r.looks_genuine === true;
-
-      paymentVerified = pass;
-      resultCard.className = 'ai-result ' + (pass ? 'pass' : 'fail');
-      resultTitle.textContent = pass ? '✅ Payment Verified!' : '❌ Verification Failed';
-
-      resultRows.innerHTML = `
-        <div class="ai-result-row">
-          <span class="label">Amount found</span>
-          <span class="val ${r.amount_match ? 'ok' : 'bad'}">
-            ${r.amount_found || 'Not found'} ${r.amount_match ? '✓' : '✗ Expected RM ' + grandTotal}
-          </span>
-        </div>
-        <div class="ai-result-row">
-          <span class="label">Payment time</span>
-          <span class="val ${r.time_recent ? 'ok' : 'bad'}">
-            ${r.time_found || 'Not found'} ${r.time_recent ? '✓' : '✗ Too old / not found'}
-          </span>
-        </div>
-        <div class="ai-result-row">
-          <span class="label">Genuine receipt</span>
-          <span class="val ${r.looks_genuine ? 'ok' : 'bad'}">${r.looks_genuine ? 'Yes ✓' : 'Not a receipt ✗'}</span>
-        </div>
-        ${!pass ? '<div style="margin-top:8px;font-size:12px;color:#E8654A;font-weight:600;">⚠️ ' + (r.reason || 'Verification failed') + '</div>' : ''}
-        ${!pass ? '<div style="margin-top:4px;font-size:11px;color:var(--text-muted);">Please upload the correct TNG payment screenshot.</div>' : ''}
-      `;
-
-      if (pass) {
-        paidBtn.disabled = false;
-        paidBtn.style.opacity = '1';
-        paidBtn.style.cursor = 'pointer';
-        paidBtn.textContent = '✓  Confirm & Submit Order';
-      } else {
-        // Reset so they re-upload
-        paymentVerified = false;
-        screenshotBase64 = null;
-        setTimeout(() => {
-          document.getElementById('upload-zone').classList.remove('has-image');
-          document.getElementById('upload-preview').style.display = 'none';
-          document.getElementById('upload-placeholder').style.display = 'block';
-          document.getElementById('screenshot-input').value = '';
-        }, 2000);
-      }
-
-    } catch (err) {
-      console.error('AI verify error:', err);
-      // ⚠️ Do NOT auto-unlock — show error, let them retry
-      paymentVerified = false;
-      resultCard.className = 'ai-result fail';
-      resultTitle.textContent = '⚠️ Verification failed — please retry';
-      resultRows.innerHTML = `
-        <div style="font-size:12px;color:var(--text-muted);padding:4px 0;">
-          Could not verify automatically. Please ensure:<br>
-          • Screenshot shows TNG payment receipt<br>
-          • Amount is RM ${grandTotal}<br>
-          • Payment was made recently<br><br>
-          <span style="color:#E8654A;font-weight:600;">Tap the upload area again to retry.</span>
-        </div>`;
-      // Reset upload
-      screenshotBase64 = null;
-      setTimeout(() => {
-        document.getElementById('upload-zone').classList.remove('has-image');
-        document.getElementById('upload-preview').style.display = 'none';
-        document.getElementById('upload-placeholder').style.display = 'block';
-        document.getElementById('screenshot-input').value = '';
-      }, 2500);
-    }
-  }
 
   // ═══════════════════════════════════════════
   //  PAYMENT → FIRESTORE (no Storage needed)
