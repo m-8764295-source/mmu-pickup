@@ -3,6 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+<!-- ── PWA ── -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1B3FA0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIDI">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="MIDI">
+<meta name="description" content="MMU Melaka Campus Food Delivery">
 <title>MIDI — MMU Delivery</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
 <style>
@@ -2767,6 +2780,45 @@
     }).join('');
   }
   window.refreshStatus = () => {}; // no-op, Firestore handles it
+</script>
+<script>
+  // Register Service Worker for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(r => console.log('SW registered'))
+        .catch(e => console.log('SW failed:', e));
+    });
+  }
+
+  // Show "Add to Home Screen" prompt on iOS after 3s
+  setTimeout(() => {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone;
+    if (isIOS && !isStandalone) {
+      const banner = document.createElement('div');
+      banner.innerHTML = `
+        <div style="
+          position:fixed;bottom:24px;left:16px;right:16px;
+          background:#1B3FA0;color:white;
+          border-radius:16px;padding:14px 16px;
+          display:flex;align-items:center;gap:12px;
+          box-shadow:0 8px 32px rgba(0,0,0,0.4);
+          z-index:9999;font-family:'DM Sans',sans-serif;
+          animation:fadeUp 0.4s ease;
+        ">
+          <div style="font-size:28px;">📲</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Install MIDI App</div>
+            <div style="font-size:11px;opacity:0.8;">Tap <b>Share</b> → <b>Add to Home Screen</b></div>
+          </div>
+          <div onclick="this.parentElement.parentElement.remove()"
+            style="font-size:18px;opacity:0.6;cursor:pointer;padding:4px;">✕</div>
+        </div>`;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 8000);
+    }
+  }, 3500);
 </script>
 </body>
 </html>
