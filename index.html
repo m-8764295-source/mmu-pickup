@@ -2395,6 +2395,7 @@
     const customerName  = document.getElementById('field-name').value.trim();
     const customerPhone = document.getElementById('field-phone').value.trim();
 
+    const foodTotalC   = cart.reduce((s, i) => s + i.price * i.qty, 0);
     const orderData = {
       code:          'SOD-' + String(Date.now()).slice(-4),
       name:          customerName,
@@ -2403,10 +2404,18 @@
       address:       null,
       items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard' })),
       total:         grandTotal,
+      foodTotal:     foodTotalC,
+      serviceFee:    0.50,
+      deliveryFee:   0,
+      platformComm:  0,         // no commission for pickup
+      merchantNett:  foodTotalC, // merchant gets full food total for pickup
+      riderEarning:  0,
       status:        'new',
       rider:         null,
       paymentMethod: 'Cash',
       paymentStatus: 'pay_at_counter',
+      merchantId:    'soy_oden',
+      merchantName:  'Oya',
       timestamp:     serverTimestamp(),
     };
 
@@ -2859,6 +2868,13 @@
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const smallBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
 
+      const foodTotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const serviceFee   = 0.50;
+      const deliveryFee  = orderType === 'delivery' ? 2.00 : 0;
+      const platformComm = orderType === 'delivery' ? +(foodTotal * 0.04).toFixed(2) : 0;
+      const merchantNett = +(foodTotal - platformComm).toFixed(2);
+      const riderEarning = deliveryFee; // RM 2 delivery fee → rider
+
       const orderData = {
         code:              'SOD-' + String(Date.now()).slice(-4),
         name:              customerName,
@@ -2867,11 +2883,19 @@
         address:           customerAddress,
         items:             cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard' })),
         total:             grandTotal,
+        foodTotal,
+        serviceFee,
+        deliveryFee,
+        platformComm,     // 4% of food total → MIDI platform
+        merchantNett,     // food total - 4% → merchant
+        riderEarning,     // RM 2 delivery fee → rider
         status:            'new',
         rider:             null,
         paymentMethod:     'TNG',
         paymentStatus:     'ai_verified',
-        screenshotBase64:  smallBase64,   // compressed ~50KB, fits in Firestore
+        merchantId:        'soy_oden',
+        merchantName:      'Oya',
+        screenshotBase64:  smallBase64,
         timestamp:         serverTimestamp(),
       };
 
