@@ -288,6 +288,143 @@
     display: block;
   }
 
+  /* ===== SCREEN: LOGIN ===== */
+  #screen-login {
+    background: linear-gradient(160deg, #0D1F3C 0%, #1B3FA0 60%, #0D1F3C 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .login-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+    width: 100%;
+    animation: fadeUp 0.6s ease;
+  }
+
+  .login-logo {
+    margin-bottom: 28px;
+    animation: splashIconIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+  }
+
+  .login-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .login-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .google-btn {
+    width: 100%;
+    max-width: 320px;
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2C2420;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    animation: fadeUp 0.6s ease 0.4s both;
+  }
+
+  .google-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  .google-btn svg {
+    flex-shrink: 0;
+  }
+
+  .login-footer {
+    margin-top: 24px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    animation: fadeUp 0.6s ease 0.5s both;
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  .login-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .login-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* User avatar chip in menu header */
+  .user-avatar-chip {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--matcha);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .user-avatar-chip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .user-avatar-fallback {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--matcha);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--matcha);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
   /* ===== SCREEN 1: LANDING ===== */
   #screen-landing {
     background: linear-gradient(160deg, #EEF3FA 0%, #F5F0E8 50%, #EBF4E2 100%);
@@ -1662,7 +1799,49 @@
     </div>
   </div>
 
-  <!-- ========== SCREEN 1: LANDING ========== -->  <!-- ========== SCREEN 1: LANDING ========== -->  <!-- ========== SCREEN 1: LANDING ========== -->
+  <!-- ========== SCREEN LOGIN: GOOGLE AUTH ========== -->
+  <div id="screen-login" class="screen">
+    <div class="login-content">
+      <!-- Logo -->
+      <div class="login-logo">
+        <div style="
+          width:96px;height:96px;border-radius:24px;
+          background:rgba(255,255,255,0.12);
+          border:2px solid rgba(255,255,255,0.18);
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 16px 48px rgba(0,0,0,0.3);
+        ">
+          <div style="font-family:'DM Sans',Arial,sans-serif;font-size:26px;font-weight:800;color:white;letter-spacing:3px;line-height:1;">MIDI</div>
+        </div>
+      </div>
+
+      <h1 class="login-title">Welcome to MIDI</h1>
+      <p class="login-sub">MMU Melaka Campus Delivery · Sign in to order</p>
+
+      <!-- Google Button -->
+      <button class="google-btn" id="google-signin-btn" onclick="signInWithGoogle()">
+        <!-- Google G logo -->
+        <svg width="22" height="22" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <!-- Loading state (hidden by default) -->
+      <div class="login-loading" id="login-loading" style="display:none;">
+        <div class="login-spinner"></div>
+        <span>Signing you in…</span>
+      </div>
+
+      <p class="login-footer">By signing in, you agree to MIDI's terms. Only MMU Google accounts recommended.</p>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN 1: LANDING ========== -->
   <div id="screen-landing" class="screen">
     <div class="landing-content">
 
@@ -2222,25 +2401,18 @@
 
 <script type="module">
   // ═══════════════════════════════════════════
-  //  SPLASH → LANDING (auto after 3s)
-  // ═══════════════════════════════════════════
-  setTimeout(() => {
-    const splash  = document.getElementById('screen-splash');
-    const landing = document.getElementById('screen-landing');
-    // splash-out animation runs (0.5s), then hide splash, show landing
-    setTimeout(() => {
-      splash.classList.remove('active');
-      splash.style.display = 'none';
-      landing.classList.add('active');
-    }, 500); // matches splashOut duration
-  }, 2800); // 2.8s + 0.5s fade = 3.3s total
-
-  // ═══════════════════════════════════════════
   //  FIREBASE SETUP
   // ═══════════════════════════════════════════
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 
   const firebaseConfig = {
@@ -2254,6 +2426,84 @@
 
   const app     = initializeApp(firebaseConfig);
   const db      = getFirestore(app);
+  const auth    = getAuth(app);
+
+  // ═══════════════════════════════════════════
+  //  AUTH STATE — route splash → login or landing
+  // ═══════════════════════════════════════════
+  let currentUser = null;
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user) {
+      // Already signed in — update any user UI
+      updateUserChip(user);
+    }
+  });
+
+  // After splash animation (2.8s), show login or landing based on auth
+  setTimeout(() => {
+    const splash = document.getElementById('screen-splash');
+    setTimeout(() => {
+      splash.classList.remove('active');
+      splash.style.display = 'none';
+      if (auth.currentUser) {
+        // Already logged in
+        document.getElementById('screen-landing').classList.add('active');
+        updateUserChip(auth.currentUser);
+      } else {
+        // Show login screen
+        document.getElementById('screen-login').classList.add('active');
+      }
+    }, 500);
+  }, 2800);
+
+  async function signInWithGoogle() {
+    const btn = document.getElementById('google-signin-btn');
+    const loading = document.getElementById('login-loading');
+    btn.style.display = 'none';
+    loading.style.display = 'flex';
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      currentUser = result.user;
+      updateUserChip(currentUser);
+
+      // Transition to landing
+      document.getElementById('screen-login').classList.remove('active');
+      document.getElementById('screen-landing').classList.add('active');
+    } catch (err) {
+      console.error('Sign-in error:', err);
+      btn.style.display = 'flex';
+      loading.style.display = 'none';
+      showToastMsg('Sign-in failed. Please try again.');
+    }
+  }
+  window.signInWithGoogle = signInWithGoogle;
+
+  function updateUserChip(user) {
+    if (!user) return;
+    // Update greeting in menu
+    const greeting = document.querySelector('.menu-greeting');
+    if (greeting) {
+      const name = user.displayName ? user.displayName.split(' ')[0] : 'there';
+      const hour = new Date().getHours();
+      const tod = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+      greeting.textContent = `Good ${tod}, ${name} ☀`;
+    }
+    // Replace the home icon in menu header with avatar
+    const homeBtn = document.querySelector('#screen-menu [title="Back to Home"]');
+    if (homeBtn && user.photoURL) {
+      homeBtn.innerHTML = `<img src="${user.photoURL}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--matcha);" referrerpolicy="no-referrer">`;
+    }
+    // Auto-fill name and phone if fields are empty
+    const nameField = document.getElementById('field-name');
+    if (nameField && !nameField.value && user.displayName) {
+      nameField.value = user.displayName;
+    }
+  }
+  window.updateUserChip = updateUserChip;
 
   // ═══════════════════════════════════════════
   //  APP STATE
