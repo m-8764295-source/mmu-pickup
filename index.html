@@ -213,6 +213,8 @@
     display: flex; align-items: flex-end; justify-content: center;
     animation: fadeIn 0.2s ease;
   }
+  #rating-modal { display: none; }
+  #rating-modal.visible { display: flex; }
   .rating-sheet {
     background: var(--white); border-radius: 28px 28px 0 0;
     padding: 28px 24px 40px; width: 100%; max-width: 430px;
@@ -2379,7 +2381,7 @@
   </div>
 
   <!-- ========== RATING MODAL ========== -->
-  <div id="rating-modal" style="display:none;position:fixed;inset:0;background:rgba(44,36,32,0.6);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closeRating()">
+  <div id="rating-modal" style="display:none;" onclick="if(event.target===this)closeRating()">
     <div class="rating-sheet">
       <div style="width:40px;height:4px;background:var(--beige2);border-radius:2px;margin:0 auto 20px;"></div>
       <div class="rating-title">How was your order? 🍵</div>
@@ -2404,13 +2406,15 @@
   //  SPLASH → LANDING (auto after 3s)
   // ═══════════════════════════════════════════
   // Handle redirect result (for iOS/PWA redirect flow)
-  getRedirectResult(auth).then(result => {
-    if(result && result.user) {
-      currentUser = result.user;
-      loadUserOrders(currentUser.uid);
-      goTo('landing');
-    }
-  }).catch(e => console.log('Redirect result:', e.code));
+  try {
+    getRedirectResult(auth).then(result => {
+      if(result && result.user) {
+        currentUser = result.user;
+        loadUserOrders(currentUser.uid);
+        goTo('landing');
+      }
+    }).catch(e => console.log('Redirect result:', e.code));
+  } catch(e) { console.log('getRedirectResult error:', e); }
 
   // Listen for auth state
   onAuthStateChanged(auth, user => {
@@ -2741,12 +2745,12 @@
     document.getElementById('rating-comment').value = '';
     document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('active'));
     const modal = document.getElementById('rating-modal');
-    modal.style.display = 'flex';
+    modal.classList.add('visible');
   }
   window.openRating = openRating;
 
   function closeRating() {
-    document.getElementById('rating-modal').style.display = 'none';
+    document.getElementById('rating-modal').classList.remove('visible');
     ratingOrderId = null; selectedStar = 0;
   }
   window.closeRating = closeRating;
