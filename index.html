@@ -2575,8 +2575,7 @@
   import {
     getAuth,
     GoogleAuthProvider,
-    signInWithRedirect,
-    getRedirectResult,
+    signInWithPopup,
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -2596,82 +2595,77 @@
   const auth    = getAuth(app);
 
   // ═══════════════════════════════════════════
-  //  AUTH — redirect flow, no infinite loop
+  //  AUTH — clean, no redirect, no loop
   // ═══════════════════════════════════════════
   let currentUser = null;
+  let splashHidden = false;
 
-  function goToLanding(user) {
+  function hideSplash() {
+    if (splashHidden) return;
+    splashHidden = true;
+    const splash = document.getElementById('screen-splash');
+    splash.classList.remove('active');
+    splash.style.display = 'none';
+  }
+
+  function showLanding(user) {
+    hideSplash();
     currentUser = user;
     updateUserChip(user);
-    document.getElementById('screen-login').classList.remove('active');
-    document.getElementById('screen-splash').classList.remove('active');
-    document.getElementById('screen-splash').style.display = 'none';
-    // Remove any active screen first
     document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-landing').classList.add('active');
   }
 
-  function goToLogin() {
-    document.getElementById('screen-splash').classList.remove('active');
-    document.getElementById('screen-splash').style.display = 'none';
+  function showLogin() {
+    hideSplash();
     document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-login').classList.add('active');
+    // Reset button state
+    const btn = document.getElementById('google-signin-btn');
+    const loading = document.getElementById('login-loading');
+    if (btn) btn.style.display = 'flex';
+    if (loading) loading.style.display = 'none';
   }
 
-  // Step 1: Check for redirect result FIRST (runs after Google redirects back)
-  // Use a flag so onAuthStateChanged doesn't double-navigate
-  let authHandled = false;
-
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) {
-      authHandled = true;
-      // Coming back from Google login — go straight to landing
-      goToLanding(result.user);
-    }
-  }).catch((err) => {
-    console.error('Redirect result error:', err);
-  });
-
-  // Step 2: onAuthStateChanged — only fires if not already handled by redirect
+  // onAuthStateChanged is the ONLY thing that navigates
   onAuthStateChanged(auth, (user) => {
-    if (authHandled) return; // redirect already handled it
     currentUser = user;
+    if (!splashHidden) return; // wait for splash to finish first
     if (user) {
-      updateUserChip(user);
+      showLanding(user);
+    } else {
+      showLogin();
     }
   });
 
-  // Step 3: After splash (2.8s), decide which screen to show
+  // After splash ends, check auth state once
   setTimeout(() => {
-    const splash = document.getElementById('screen-splash');
-    splash.style.animation = 'none';
-    setTimeout(() => {
-      if (authHandled) return; // redirect already navigated, don't touch screens
-      splash.classList.remove('active');
-      splash.style.display = 'none';
-      if (auth.currentUser) {
-        goToLanding(auth.currentUser);
-      } else {
-        goToLogin();
-      }
-    }, 400);
-  }, 2800);
+    hideSplash();
+    if (auth.currentUser) {
+      showLanding(auth.currentUser);
+    } else {
+      showLogin();
+    }
+  }, 3300);
 
   async function signInWithGoogle() {
     const btn = document.getElementById('google-signin-btn');
     const loading = document.getElementById('login-loading');
     btn.style.display = 'none';
     loading.style.display = 'flex';
+
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-      // Browser navigates away to Google — page reloads on return
-      // getRedirectResult() above will catch it
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged fires → showLanding() called automatically
     } catch (err) {
-      console.error('Sign-in error:', err);
+      console.error('Sign-in error:', err.code, err.message);
       btn.style.display = 'flex';
       loading.style.display = 'none';
-      showToastMsg('Sign-in failed. Please try again.');
+      if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+        showToastMsg('Sign-in failed: ' + err.code);
+      }
     }
   }
   window.signInWithGoogle = signInWithGoogle;
