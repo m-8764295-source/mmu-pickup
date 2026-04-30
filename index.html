@@ -2576,8 +2576,6 @@
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
-    signInWithRedirect,
-    getRedirectResult,
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -2597,45 +2595,61 @@
   const auth    = getAuth(app);
 
   // ═══════════════════════════════════════════
-  //  AUTH STATE — route splash → login or landing
+  //  AUTH STATE — single source of truth
   // ═══════════════════════════════════════════
   let currentUser = null;
+  let splashDone = false;
+  let authResolved = false;
 
-  onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    if (user) {
-      updateUserChip(user);
-    }
-  });
-
-  // After splash (2.8s), check redirect result first, then auth state
-  setTimeout(() => {
+  function showScreenAfterAuth(user) {
     const splash = document.getElementById('screen-splash');
-    setTimeout(async () => {
-      splash.classList.remove('active');
-      splash.style.display = 'none';
+    splash.classList.remove('active');
+    splash.style.display = 'none';
 
-      // Check if returning from Google redirect
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          currentUser = result.user;
-          updateUserChip(currentUser);
-          document.getElementById('screen-landing').classList.add('active');
-          return;
-        }
-      } catch (err) {
-        console.error('Redirect result error:', err);
-      }
-
-      // No redirect — check existing session
-      if (auth.currentUser) {
+    if (user) {
+      currentUser = user;
+      updateUserChip(user);
+      const loginScreen = document.getElementById('screen-login');
+      loginScreen.classList.remove('active');
+      if (!document.querySelector('.screen.active')) {
         document.getElementById('screen-landing').classList.add('active');
-        updateUserChip(auth.currentUser);
-      } else {
+      }
+    } else {
+      if (!document.querySelector('.screen.active')) {
         document.getElementById('screen-login').classList.add('active');
       }
-    }, 500);
+    }
+  }
+
+  // Wait for both splash (2.8s) AND Firebase auth to resolve
+  let splashTimer = null;
+  let authUser = undefined; // undefined = not yet resolved
+
+  onAuthStateChanged(auth, (user) => {
+    authUser = user;
+    currentUser = user;
+    if (user) updateUserChip(user);
+
+    if (splashDone) {
+      // Splash already finished, act now
+      showScreenAfterAuth(user);
+    }
+    // else splash timer will call showScreenAfterAuth when it fires
+  });
+
+  setTimeout(() => {
+    splashDone = true;
+    if (authUser !== undefined) {
+      // Auth already resolved before splash ended
+      showScreenAfterAuth(authUser);
+    } else {
+      // Auth still loading — wait a tiny bit more then show login
+      setTimeout(() => {
+        if (!document.querySelector('.screen.active')) {
+          showScreenAfterAuth(authUser !== undefined ? authUser : null);
+        }
+      }, 1500);
+    }
   }, 2800);
 
   async function signInWithGoogle() {
@@ -2646,9 +2660,8 @@
 
     try {
       const provider = new GoogleAuthProvider();
-      // Use redirect (works on mobile/PWA); popup often blocked on phones
-      await signInWithRedirect(auth, provider);
-      // Page will reload — getRedirectResult() above handles the rest
+      const result = await signInWithPopup(auth, provider);
+      // onAuthStateChanged will fire automatically — no manual navigation needed
     } catch (err) {
       console.error('Sign-in error:', err);
       btn.style.display = 'flex';
