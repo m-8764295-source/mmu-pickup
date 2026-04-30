@@ -2716,34 +2716,40 @@
     btn.style.display     = 'none';
     loading.style.display = 'flex';
 
-    try {
-      if (authMode === 'signup') {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        // Save display name
-        if (name) {
-          const { updateProfile } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-          await updateProfile(result.user, { displayName: name });
-          result.user.displayName = name;
-        }
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      // onAuthStateChanged fires → showLanding() automatically
-    } catch (err) {
-      console.error('Auth error:', err.code);
+    const resetUI = () => {
       btn.style.display     = 'flex';
       loading.style.display = 'none';
+    };
+
+    try {
+      let userCredential;
+      if (authMode === 'signup') {
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (name) {
+          const { updateProfile } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+          await updateProfile(userCredential.user, { displayName: name });
+        }
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      }
+      // Success — navigate immediately, don't wait for onAuthStateChanged
+      resetUI();
+      showLanding(userCredential.user);
+    } catch (err) {
+      console.error('Auth error:', err.code, err.message);
+      resetUI();
       const msgs = {
-        'auth/user-not-found':       'No account found. Please sign up first.',
-        'auth/wrong-password':       'Wrong password. Please try again.',
-        'auth/invalid-credential':   'Wrong email or password.',
-        'auth/email-already-in-use': 'Email already registered. Please login.',
-        'auth/invalid-email':        'Please enter a valid email address.',
-        'auth/weak-password':        'Password too weak. Use at least 6 characters.',
-        'auth/too-many-requests':    'Too many attempts. Please try again later.',
+        'auth/user-not-found':         'No account found. Please Sign Up first.',
+        'auth/wrong-password':         'Wrong password. Please try again.',
+        'auth/invalid-credential':     'Wrong email or password.',
+        'auth/email-already-in-use':   'Email already registered. Please Login.',
+        'auth/invalid-email':          'Please enter a valid email address.',
+        'auth/weak-password':          'Password too weak. Use at least 6 characters.',
+        'auth/too-many-requests':      'Too many attempts. Please try again later.',
         'auth/network-request-failed': 'No internet connection.',
+        'auth/user-disabled':          'This account has been disabled.',
       };
-      showAuthError(msgs[err.code] || 'Something went wrong. Please try again.');
+      showAuthError(msgs[err.code] || 'Error: ' + err.code);
     }
   }
   window.submitAuth = submitAuth;
