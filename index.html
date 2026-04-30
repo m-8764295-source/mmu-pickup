@@ -2092,55 +2092,93 @@
     </div>
   </div>
 
-  <!-- ========== SCREEN 1: LANDING ========== -->
+  <!-- ========== SCREEN 1: LANDING — Merchant List ========== -->
   <div id="screen-landing" class="screen">
-    <div class="landing-content">
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
 
-      <!-- MIDI Logo -->
-      <div style="animation:fadeUp 0.6s ease 0.1s both;display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:16px;">
-
-        <!-- App icon -->
-        <div style="
-          width:100px;height:100px;border-radius:24px;
-          background:#1B3FA0;
-          display:flex;align-items:center;justify-content:center;
-          box-shadow:0 12px 40px rgba(27,63,160,0.25);
-          margin-bottom:16px;
-        ">
-          <div style="
-            font-family:'DM Sans',Arial,sans-serif;
-            font-size:28px;font-weight:800;
-            color:white;letter-spacing:3px;
-            line-height:1;
-          ">MIDI</div>
+      <!-- Header -->
+      <div style="padding:20px 20px 0;flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:#1B3FA0;letter-spacing:4px;line-height:1;">MIDI</div>
+            <div style="font-size:11px;color:var(--text-muted);font-weight:500;margin-top:2px;">MMU Campus Delivery 🎓</div>
+          </div>
+          <button onclick="goTo('orders')" style="background:var(--cream);border:1.5px solid var(--beige);border-radius:100px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text-mid);cursor:pointer;">📋 Orders</button>
         </div>
 
-        <!-- MIDI wordmark -->
-        <div style="
-          font-family:'DM Sans',Arial,sans-serif;
-          font-size:48px;font-weight:800;
-          color:#1B3FA0;letter-spacing:10px;
-          line-height:1;
-        ">MIDI</div>
+        <!-- Greeting -->
+        <div id="landing-greeting" style="font-size:16px;font-weight:700;color:var(--text-dark);margin:16px 0 4px;">Good day! 👋</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Where would you like to order from?</div>
+      </div>
 
-        <!-- Blue accent bars (motion trail under II) -->
-        <div style="display:flex;justify-content:flex-end;width:100%;padding-right:2px;margin-top:5px;">
-          <div style="width:60px;height:4px;background:#2979D8;border-radius:2px;"></div>
+      <!-- Merchant list scroll -->
+      <div style="flex:1;overflow-y:auto;padding:0 20px 40px;scrollbar-width:none;">
+
+        <!-- Section label -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">🏪 Open Now</div>
+
+        <!-- Merchant Card: Oya -->
+        <div onclick="selectMerchant('oya')" style="background:var(--white);border:1px solid var(--beige);border-radius:20px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;active:transform:scale(0.98);">
+          <!-- Banner -->
+          <div style="height:110px;background:linear-gradient(135deg,#0D1F3C 0%,#1B3FA0 60%,#2979D8 100%);display:flex;align-items:center;justify-content:center;position:relative;">
+            <div style="font-size:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3));">🍵</div>
+            <div style="position:absolute;top:10px;right:10px;background:rgba(122,158,90,0.9);border-radius:100px;padding:4px 10px;font-size:10px;font-weight:700;color:#fff;">● OPEN</div>
+          </div>
+          <!-- Info -->
+          <div style="padding:14px 16px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+              <div>
+                <div style="font-size:16px;font-weight:800;color:var(--text-dark);">Oya's Soy & Oden</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Soy Milk · Oden · Healthy Drinks</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+                <div style="font-size:13px;font-weight:700;color:var(--matcha);">⭐ 4.8</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">🛍 Pick Up</span>
+              <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">🛵 Delivery</span>
+              <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">⏱ ~15 min</span>
+            </div>
+          </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;width:100%;padding-right:2px;margin-top:3px;">
-          <div style="width:44px;height:3px;background:#2979D8;border-radius:2px;opacity:0.5;"></div>
+
+        <!-- Coming Soon placeholder -->
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin:20px 0 12px;">🔜 Coming Soon</div>
+        <div style="background:var(--cream);border:1.5px dashed var(--beige);border-radius:20px;padding:28px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">🏪</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-mid);">More merchants coming soon</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Stay tuned for more options!</div>
         </div>
-        <div style="display:flex;justify-content:flex-end;width:100%;padding-right:2px;margin-top:2px;">
-          <div style="width:28px;height:2px;background:#2979D8;border-radius:2px;opacity:0.25;"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN 1B: MERCHANT DETAIL — Pick Up or Delivery ========== -->
+  <div id="screen-merchant" class="screen">
+    <div class="landing-content" style="position:relative;">
+
+      <!-- Back button -->
+      <button onclick="goBackToLanding()" style="position:absolute;top:0;left:0;background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-mid);">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#6B5D50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+
+      <!-- Merchant info -->
+      <div style="text-align:center;margin-bottom:28px;animation:fadeUp 0.4s ease both;">
+        <div style="font-size:60px;margin-bottom:12px;">🍵</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text-dark);margin-bottom:4px;">Oya's Soy & Oden</div>
+        <div style="font-size:13px;color:var(--text-muted);">Soy Milk · Oden · Healthy Drinks</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;">
+          <span style="font-size:12px;color:var(--matcha);font-weight:600;">⭐ 4.8 rating</span>
+          <span style="font-size:12px;color:var(--text-muted);">⏱ ~15 min</span>
         </div>
       </div>
 
-      <div class="landing-badge" style="animation:fadeUp 0.6s ease 0.3s both;">MMU Campus Delivery</div>
-      <p class="landing-sub" style="animation:fadeUp 0.6s ease 0.35s both;margin-top:-4px;">Soy milk · Oden · Delivered to your door 🛵</p>
+      <p class="order-type-label" style="animation:fadeUp 0.4s ease 0.1s both;">How would you like your order?</p>
 
-      <p class="order-type-label" style="animation:fadeUp 0.6s ease 0.4s both;">How would you like your order?</p>
-
-      <div class="landing-buttons" style="animation:fadeUp 0.6s ease 0.45s both;">
+      <div class="landing-buttons" style="animation:fadeUp 0.4s ease 0.15s both;">
         <button class="landing-btn btn-pickup" onclick="goToMenu('pickup')">
           <div class="landing-btn-icon">🛍</div>
           Pick Up
@@ -2151,14 +2189,7 @@
         </button>
       </div>
 
-      <p class="landing-tagline" style="animation:fadeUp 0.6s ease 0.5s both;">Free delivery for orders above RM 20 ✦</p>
-
-      <!-- My Orders button -->
-      <div style="animation:fadeUp 0.6s ease 0.55s both;margin-top:16px;">
-        <button onclick="goTo('orders')" style="background:none;border:1.5px solid var(--beige);border-radius:100px;padding:10px 22px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.15s;">
-          📋 My Orders
-        </button>
-      </div>
+      <p class="landing-tagline" style="animation:fadeUp 0.4s ease 0.2s both;">Free delivery for orders above RM 20 ✦</p>
     </div>
   </div>
 
@@ -2754,6 +2785,14 @@
   function showLanding(user) {
     currentUser = user;
     if (user) updateUserChip(user);
+    // Update greeting
+    const greeting = document.getElementById('landing-greeting');
+    if (greeting) {
+      const hour = new Date().getHours();
+      const tod  = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+      const name = user?.displayName ? ', ' + user.displayName.split(' ')[0] : '';
+      greeting.textContent = `Good ${tod}${name}! 👋`;
+    }
     activateScreen('screen-landing');
   }
 
@@ -3130,6 +3169,13 @@
     goTo('menu');
   }
   window.goToMenu = goToMenu;
+
+  // ── Merchant selection ──
+  function selectMerchant(id) {
+    // For now only 'oya' exists — go to merchant detail screen
+    activateScreen('screen-merchant');
+  }
+  window.selectMerchant = selectMerchant;
 
   // ── Go back to landing (home) from anywhere ──
   function goBackToLanding() {
