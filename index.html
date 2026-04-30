@@ -2629,32 +2629,37 @@
   const auth    = getAuth(app);
 
   // ═══════════════════════════════════════════
-  //  AUTH — clean, no redirect, no loop
+  //  NAVIGATION — single function controls all screens
   // ═══════════════════════════════════════════
   let currentUser = null;
+
+  function activateScreen(id) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(s => {
+      s.style.display = 'none';
+      s.classList.remove('active');
+    });
+    // Show target
+    const target = document.getElementById(id);
+    target.style.display = 'flex';
+    target.classList.add('active');
+  }
 
   function showLanding(user) {
     currentUser = user;
     if (user) updateUserChip(user);
-    document.getElementById('screen-splash').classList.remove('active');
-    document.getElementById('screen-splash').style.display = 'none';
-    document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-landing').classList.add('active');
+    activateScreen('screen-landing');
   }
 
   function showLogin() {
-    document.getElementById('screen-splash').classList.remove('active');
-    document.getElementById('screen-splash').style.display = 'none';
-    document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-login').classList.add('active');
-    // Reset loading state
+    activateScreen('screen-login');
     const loading = document.getElementById('login-loading');
     const btn = document.getElementById('auth-submit-btn');
     if (loading) loading.style.display = 'none';
     if (btn) btn.style.display = 'flex';
   }
 
-  // After splash, route based on auth state
+  // After splash (3s), go to login or landing
   setTimeout(() => {
     if (auth.currentUser) {
       showLanding(auth.currentUser);
@@ -2663,14 +2668,11 @@
     }
   }, 3000);
 
-  // After login/signup success → go to landing immediately
+  // After successful login → go to landing
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
-    // Only act if splash is already gone (i.e. user just logged in)
-    const splash = document.getElementById('screen-splash');
-    const splashGone = !splash || splash.style.display === 'none' || !splash.classList.contains('active');
-    if (!splashGone) return;
-    if (user) {
+    const loginActive = document.getElementById('screen-login').classList.contains('active');
+    if (loginActive && user) {
       showLanding(user);
     }
   });
@@ -2762,7 +2764,6 @@
   });
 
   function skipLogin() {
-    currentUser = null;
     showLanding(null);
   }
   window.skipLogin = skipLogin;
@@ -2811,8 +2812,10 @@
     if (cur) {
       screenHistory.push(cur.id.replace('screen-', ''));
       cur.classList.remove('active');
+      cur.style.display = 'none';
     }
     const next = document.getElementById('screen-' + screen);
+    next.style.display = 'flex';
     next.classList.add('active');
     currentScreen = screen;
     if (screen === 'cart') renderCart();
@@ -2823,8 +2826,10 @@
   function goBack() {
     const prev = screenHistory.pop() || 'landing';
     const cur = document.querySelector('.screen.active');
-    if (cur) cur.classList.remove('active');
-    document.getElementById('screen-' + prev).classList.add('active');
+    if (cur) { cur.classList.remove('active'); cur.style.display = 'none'; }
+    const target = document.getElementById('screen-' + prev);
+    target.style.display = 'flex';
+    target.classList.add('active');
     currentScreen = prev;
   }
   window.goBack = goBack;
