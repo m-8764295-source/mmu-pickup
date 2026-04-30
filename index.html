@@ -2575,7 +2575,8 @@
   import {
     getAuth,
     GoogleAuthProvider,
-    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -2595,61 +2596,65 @@
   const auth    = getAuth(app);
 
   // ═══════════════════════════════════════════
-  //  AUTH STATE — single source of truth
+  //  AUTH — redirect flow, no infinite loop
   // ═══════════════════════════════════════════
   let currentUser = null;
-  let splashDone = false;
-  let authResolved = false;
 
-  function showScreenAfterAuth(user) {
-    const splash = document.getElementById('screen-splash');
-    splash.classList.remove('active');
-    splash.style.display = 'none';
-
-    if (user) {
-      currentUser = user;
-      updateUserChip(user);
-      const loginScreen = document.getElementById('screen-login');
-      loginScreen.classList.remove('active');
-      if (!document.querySelector('.screen.active')) {
-        document.getElementById('screen-landing').classList.add('active');
-      }
-    } else {
-      if (!document.querySelector('.screen.active')) {
-        document.getElementById('screen-login').classList.add('active');
-      }
-    }
+  function goToLanding(user) {
+    currentUser = user;
+    updateUserChip(user);
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-splash').style.display = 'none';
+    // Remove any active screen first
+    document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-landing').classList.add('active');
   }
 
-  // Wait for both splash (2.8s) AND Firebase auth to resolve
-  let splashTimer = null;
-  let authUser = undefined; // undefined = not yet resolved
+  function goToLogin() {
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-splash').style.display = 'none';
+    document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-login').classList.add('active');
+  }
 
-  onAuthStateChanged(auth, (user) => {
-    authUser = user;
-    currentUser = user;
-    if (user) updateUserChip(user);
+  // Step 1: Check for redirect result FIRST (runs after Google redirects back)
+  // Use a flag so onAuthStateChanged doesn't double-navigate
+  let authHandled = false;
 
-    if (splashDone) {
-      // Splash already finished, act now
-      showScreenAfterAuth(user);
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+      authHandled = true;
+      // Coming back from Google login — go straight to landing
+      goToLanding(result.user);
     }
-    // else splash timer will call showScreenAfterAuth when it fires
+  }).catch((err) => {
+    console.error('Redirect result error:', err);
   });
 
-  setTimeout(() => {
-    splashDone = true;
-    if (authUser !== undefined) {
-      // Auth already resolved before splash ended
-      showScreenAfterAuth(authUser);
-    } else {
-      // Auth still loading — wait a tiny bit more then show login
-      setTimeout(() => {
-        if (!document.querySelector('.screen.active')) {
-          showScreenAfterAuth(authUser !== undefined ? authUser : null);
-        }
-      }, 1500);
+  // Step 2: onAuthStateChanged — only fires if not already handled by redirect
+  onAuthStateChanged(auth, (user) => {
+    if (authHandled) return; // redirect already handled it
+    currentUser = user;
+    if (user) {
+      updateUserChip(user);
     }
+  });
+
+  // Step 3: After splash (2.8s), decide which screen to show
+  setTimeout(() => {
+    const splash = document.getElementById('screen-splash');
+    splash.style.animation = 'none';
+    setTimeout(() => {
+      if (authHandled) return; // redirect already navigated, don't touch screens
+      splash.classList.remove('active');
+      splash.style.display = 'none';
+      if (auth.currentUser) {
+        goToLanding(auth.currentUser);
+      } else {
+        goToLogin();
+      }
+    }, 400);
   }, 2800);
 
   async function signInWithGoogle() {
@@ -2657,11 +2662,11 @@
     const loading = document.getElementById('login-loading');
     btn.style.display = 'none';
     loading.style.display = 'flex';
-
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      // onAuthStateChanged will fire automatically — no manual navigation needed
+      await signInWithRedirect(auth, provider);
+      // Browser navigates away to Google — page reloads on return
+      // getRedirectResult() above will catch it
     } catch (err) {
       console.error('Sign-in error:', err);
       btn.style.display = 'flex';
