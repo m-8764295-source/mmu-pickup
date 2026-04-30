@@ -3004,10 +3004,14 @@
 
   // ── Go back to landing (home) from anywhere ──
   function goBackToLanding() {
-    // Clear history and go straight to landing
     screenHistory = [];
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-landing').classList.add('active');
+    document.querySelectorAll('.screen').forEach(s => {
+      s.classList.remove('active');
+      s.style.display = 'none';
+    });
+    const landing = document.getElementById('screen-landing');
+    landing.style.display = 'flex';
+    landing.classList.add('active');
     currentScreen = 'landing';
     closeOrderModal();
   }
