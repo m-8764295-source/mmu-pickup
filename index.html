@@ -2710,7 +2710,7 @@
   //  FIREBASE SETUP
   // ═══════════════════════════════════════════
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp, query, where, orderBy, getDocs }
+  import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp, query, where, orderBy, getDocs, setDoc, getDoc, updateDoc, increment }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import {
     getAuth,
@@ -2837,10 +2837,27 @@
           const { updateProfile } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
           await updateProfile(userCredential.user, { displayName: name });
         }
+        // Save user profile to Firestore users collection
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid:        userCredential.user.uid,
+          email:      userCredential.user.email,
+          name:       name || '',
+          status:     'active',
+          orderCount: 0,
+          createdAt:  new Date().toISOString(),
+        });
       } else {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Check if suspended
+        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+        if (userDoc.exists() && userDoc.data().status === 'suspended') {
+          await signOut(auth);
+          resetUI();
+          showAuthError('Your account has been suspended. Please contact support.');
+          return;
+        }
       }
-      // Success — navigate immediately, don't wait for onAuthStateChanged
+      // Success — navigate immediately
       resetUI();
       showLanding(userCredential.user);
     } catch (err) {
@@ -3070,6 +3087,10 @@
     try {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       currentOrderId = docRef.id;
+      // Update customer order stats
+      if (currentUser) {
+        updateDoc(doc(db,'users',currentUser.uid),{ orderCount: increment(1), lastOrderAt: new Date().toISOString() }).catch(()=>{});
+      }
       startStatusTracking(currentOrderId);
       goTo('success');
       cart = [];
@@ -3557,6 +3578,10 @@
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       currentOrderId = docRef.id;
+      // Update customer order stats
+      if (currentUser) {
+        updateDoc(doc(db,'users',currentUser.uid),{ orderCount: increment(1), lastOrderAt: new Date().toISOString() }).catch(()=>{});
+      }
       startStatusTracking(currentOrderId);
       goTo('success');
       cart = []; screenshotBase64 = null; paymentVerified = false;
