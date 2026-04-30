@@ -2632,55 +2632,48 @@
   //  AUTH — clean, no redirect, no loop
   // ═══════════════════════════════════════════
   let currentUser = null;
-  let splashHidden = false;
-
-  function hideSplash() {
-    if (splashHidden) return;
-    splashHidden = true;
-    const splash = document.getElementById('screen-splash');
-    splash.classList.remove('active');
-    splash.style.display = 'none';
-  }
 
   function showLanding(user) {
-    hideSplash();
     currentUser = user;
     if (user) updateUserChip(user);
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-splash').style.display = 'none';
     document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-landing').classList.add('active');
   }
 
   function showLogin() {
-    hideSplash();
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-splash').style.display = 'none';
     document.querySelectorAll('.screen.active').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-login').classList.add('active');
-    // Reset button state
-    const btn = document.getElementById('google-signin-btn');
+    // Reset loading state
     const loading = document.getElementById('login-loading');
-    if (btn) btn.style.display = 'flex';
+    const btn = document.getElementById('auth-submit-btn');
     if (loading) loading.style.display = 'none';
+    if (btn) btn.style.display = 'flex';
   }
 
-  // onAuthStateChanged is the ONLY thing that navigates
-  onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    if (!splashHidden) return; // wait for splash to finish first
-    if (user) {
-      showLanding(user);
-    } else {
-      showLogin();
-    }
-  });
-
-  // After splash ends, check auth state once
+  // After splash, route based on auth state
   setTimeout(() => {
-    hideSplash();
     if (auth.currentUser) {
       showLanding(auth.currentUser);
     } else {
       showLogin();
     }
-  }, 3300);
+  }, 3000);
+
+  // After login/signup success → go to landing immediately
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    // Only act if splash is already gone (i.e. user just logged in)
+    const splash = document.getElementById('screen-splash');
+    const splashGone = !splash || splash.style.display === 'none' || !splash.classList.contains('active');
+    if (!splashGone) return;
+    if (user) {
+      showLanding(user);
+    }
+  });
 
   // ═══════════════════════════════════════════
   //  EMAIL / PASSWORD AUTH
