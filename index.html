@@ -1693,6 +1693,140 @@
     color: var(--matcha);
   }
 
+  /* ===== RATING CARD ===== */
+  .rating-card {
+    width: 100%;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--beige);
+    box-shadow: var(--shadow-sm);
+    margin-top: 16px;
+    animation: fadeUp 0.4s ease 0.6s both;
+  }
+
+  .rating-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+  }
+
+  .rating-card-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .star-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .star-btn {
+    font-size: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.15s ease;
+    filter: grayscale(1) opacity(0.35);
+    line-height: 1;
+  }
+
+  .star-btn.active {
+    filter: none;
+    transform: scale(1.15);
+  }
+
+  .star-btn:active { transform: scale(0.9); }
+
+  .rating-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--matcha);
+    min-height: 20px;
+    margin-bottom: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .review-textarea {
+    width: 100%;
+    border: 1.5px solid var(--beige);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-dark);
+    resize: none;
+    outline: none;
+    background: var(--cream);
+    transition: border-color 0.2s;
+    min-height: 80px;
+    box-sizing: border-box;
+  }
+
+  .review-textarea::placeholder { color: var(--text-muted); }
+  .review-textarea:focus { border-color: var(--matcha); background: var(--white); }
+
+  .quick-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 14px;
+  }
+
+  .quick-tag {
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1.5px solid var(--beige);
+    background: var(--white);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .quick-tag.selected {
+    background: var(--matcha-pale);
+    border-color: var(--matcha);
+    color: var(--matcha);
+  }
+
+  .submit-review-btn {
+    width: 100%;
+    background: var(--matcha);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(122,158,90,0.3);
+    transition: transform 0.15s, opacity 0.15s;
+    margin-top: 4px;
+  }
+
+  .submit-review-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .submit-review-btn:active { transform: scale(0.98); }
+
+  .review-thanks {
+    text-align: center;
+    padding: 12px 0 4px;
+    animation: scaleIn 0.4s ease;
+  }
+
+  .review-thanks-icon { font-size: 36px; margin-bottom: 8px; }
+  .review-thanks-title { font-size: 15px; font-weight: 700; color: var(--matcha); margin-bottom: 4px; }
+  .review-thanks-sub { font-size: 12px; color: var(--text-muted); }
+
   /* nav indicator */
   .nav-dots {
     position: absolute;
@@ -2364,6 +2498,38 @@
         <button onclick="goTo('menu')" style="flex:1;background:var(--white);border:1.5px solid var(--beige);border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text-mid);cursor:pointer;">+ New Order</button>
         <button onclick="refreshStatus()" style="flex:1;background:var(--matcha);border:none;border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(122,158,90,0.3);">🔄 Refresh Status</button>
       </div>
+
+      <!-- ★ RATING CARD ★ -->
+      <div class="rating-card" id="rating-card">
+        <div class="rating-card-title">How was your experience? ⭐</div>
+        <div class="rating-card-sub">Rate Oya's stall — takes 10 seconds!</div>
+
+        <div class="star-row" id="star-row">
+          <button class="star-btn" data-val="1" onclick="setRating(1)">⭐</button>
+          <button class="star-btn" data-val="2" onclick="setRating(2)">⭐</button>
+          <button class="star-btn" data-val="3" onclick="setRating(3)">⭐</button>
+          <button class="star-btn" data-val="4" onclick="setRating(4)">⭐</button>
+          <button class="star-btn" data-val="5" onclick="setRating(5)">⭐</button>
+        </div>
+
+        <div class="rating-label" id="rating-label"></div>
+
+        <div class="quick-tags" id="quick-tags" style="display:none;">
+          <button class="quick-tag" onclick="toggleTag(this)">🍵 Great drinks</button>
+          <button class="quick-tag" onclick="toggleTag(this)">🍢 Fresh oden</button>
+          <button class="quick-tag" onclick="toggleTag(this)">⚡ Fast service</button>
+          <button class="quick-tag" onclick="toggleTag(this)">💰 Good value</button>
+          <button class="quick-tag" onclick="toggleTag(this)">😊 Friendly staff</button>
+          <button class="quick-tag" onclick="toggleTag(this)">📦 Nice packaging</button>
+        </div>
+
+        <textarea class="review-textarea" id="review-text" placeholder="Share more about your experience… (optional)" style="display:none;"></textarea>
+
+        <button class="submit-review-btn" id="submit-review-btn" onclick="submitReview()" style="display:none;" disabled>
+          Submit Review
+        </button>
+      </div>
+
       </div>
     </div>
   </div>
@@ -2410,6 +2576,8 @@
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -2436,23 +2604,35 @@
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
-      // Already signed in — update any user UI
       updateUserChip(user);
     }
   });
 
-  // After splash animation (2.8s), show login or landing based on auth
+  // After splash (2.8s), check redirect result first, then auth state
   setTimeout(() => {
     const splash = document.getElementById('screen-splash');
-    setTimeout(() => {
+    setTimeout(async () => {
       splash.classList.remove('active');
       splash.style.display = 'none';
+
+      // Check if returning from Google redirect
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          currentUser = result.user;
+          updateUserChip(currentUser);
+          document.getElementById('screen-landing').classList.add('active');
+          return;
+        }
+      } catch (err) {
+        console.error('Redirect result error:', err);
+      }
+
+      // No redirect — check existing session
       if (auth.currentUser) {
-        // Already logged in
         document.getElementById('screen-landing').classList.add('active');
         updateUserChip(auth.currentUser);
       } else {
-        // Show login screen
         document.getElementById('screen-login').classList.add('active');
       }
     }, 500);
@@ -2466,13 +2646,9 @@
 
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      currentUser = result.user;
-      updateUserChip(currentUser);
-
-      // Transition to landing
-      document.getElementById('screen-login').classList.remove('active');
-      document.getElementById('screen-landing').classList.add('active');
+      // Use redirect (works on mobile/PWA); popup often blocked on phones
+      await signInWithRedirect(auth, provider);
+      // Page will reload — getRedirectResult() above handles the rest
     } catch (err) {
       console.error('Sign-in error:', err);
       btn.style.display = 'flex';
@@ -3215,6 +3391,114 @@
     }).join('');
   }
   window.refreshStatus = () => {}; // no-op, Firestore handles it
+
+  // ═══════════════════════════════════════════
+  //  RATING & REVIEW
+  // ═══════════════════════════════════════════
+  let currentRating = 0;
+  const ratingLabels = ['', '😞 Poor', '😐 Fair', '🙂 Good', '😊 Great', '🤩 Excellent!'];
+
+  function setRating(val) {
+    currentRating = val;
+    // Update stars
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.val) <= val);
+    });
+    // Update label
+    document.getElementById('rating-label').textContent = ratingLabels[val];
+    // Show tags, textarea, submit button
+    document.getElementById('quick-tags').style.display = 'flex';
+    document.getElementById('review-text').style.display = 'block';
+    document.getElementById('submit-review-btn').style.display = 'block';
+    document.getElementById('submit-review-btn').disabled = false;
+  }
+  window.setRating = setRating;
+
+  function toggleTag(el) {
+    el.classList.toggle('selected');
+    // Append tag text to textarea if selected
+    const ta = document.getElementById('review-text');
+    const tag = el.textContent.replace(/^[^\w]+/, '').trim(); // strip emoji prefix for cleanliness
+    if (el.classList.contains('selected')) {
+      ta.value = ta.value ? ta.value + ', ' + tag : tag;
+    } else {
+      // Remove tag from textarea
+      ta.value = ta.value.split(', ').filter(t => !t.includes(tag.split(' ')[1] || tag)).join(', ');
+    }
+  }
+  window.toggleTag = toggleTag;
+
+  async function submitReview() {
+    if (!currentRating) return;
+    const btn = document.getElementById('submit-review-btn');
+    btn.textContent = '⏳ Submitting…';
+    btn.disabled = true;
+
+    const comment = document.getElementById('review-text').value.trim();
+    const selectedTags = [...document.querySelectorAll('.quick-tag.selected')].map(t => t.textContent.trim());
+
+    const reviewData = {
+      orderId:    currentOrderId || null,
+      merchantId: 'soy_oden',
+      merchantName: 'Oya',
+      rating:     currentRating,
+      comment:    comment || null,
+      tags:       selectedTags,
+      userName:   currentUser ? currentUser.displayName : 'Anonymous',
+      userEmail:  currentUser ? currentUser.email : null,
+      timestamp:  serverTimestamp(),
+    };
+
+    try {
+      await addDoc(collection(db, 'reviews'), reviewData);
+      // Show thank-you state
+      document.getElementById('rating-card').innerHTML = `
+        <div class="review-thanks">
+          <div class="review-thanks-icon">🙏</div>
+          <div class="review-thanks-title">Thank you for your review!</div>
+          <div class="review-thanks-sub">Your feedback helps Oya serve you better ✨</div>
+        </div>`;
+    } catch (err) {
+      console.error('Review error:', err);
+      btn.textContent = '❌ Failed. Try again';
+      btn.disabled = false;
+    }
+  }
+  window.submitReview = submitReview;
+
+  // Reset rating UI when going to success screen
+  const _origGoTo = window.goTo;
+  window.goTo = function(screen) {
+    _origGoTo(screen);
+    if (screen === 'success') {
+      // Reset rating card
+      currentRating = 0;
+      const card = document.getElementById('rating-card');
+      if (card) {
+        card.innerHTML = `
+          <div class="rating-card-title">How was your experience? ⭐</div>
+          <div class="rating-card-sub">Rate Oya's stall — takes 10 seconds!</div>
+          <div class="star-row" id="star-row">
+            <button class="star-btn" data-val="1" onclick="setRating(1)">⭐</button>
+            <button class="star-btn" data-val="2" onclick="setRating(2)">⭐</button>
+            <button class="star-btn" data-val="3" onclick="setRating(3)">⭐</button>
+            <button class="star-btn" data-val="4" onclick="setRating(4)">⭐</button>
+            <button class="star-btn" data-val="5" onclick="setRating(5)">⭐</button>
+          </div>
+          <div class="rating-label" id="rating-label"></div>
+          <div class="quick-tags" id="quick-tags" style="display:none;">
+            <button class="quick-tag" onclick="toggleTag(this)">🍵 Great drinks</button>
+            <button class="quick-tag" onclick="toggleTag(this)">🍢 Fresh oden</button>
+            <button class="quick-tag" onclick="toggleTag(this)">⚡ Fast service</button>
+            <button class="quick-tag" onclick="toggleTag(this)">💰 Good value</button>
+            <button class="quick-tag" onclick="toggleTag(this)">😊 Friendly staff</button>
+            <button class="quick-tag" onclick="toggleTag(this)">📦 Nice packaging</button>
+          </div>
+          <textarea class="review-textarea" id="review-text" placeholder="Share more about your experience… (optional)" style="display:none;"></textarea>
+          <button class="submit-review-btn" id="submit-review-btn" onclick="submitReview()" style="display:none;" disabled>Submit Review</button>`;
+      }
+    }
+  };
 </script>
 <script>
   // Register Service Worker for PWA
