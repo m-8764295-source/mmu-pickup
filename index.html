@@ -1830,6 +1830,89 @@
   .review-thanks-title { font-size: 15px; font-weight: 700; color: var(--matcha); margin-bottom: 4px; }
   .review-thanks-sub { font-size: 12px; color: var(--text-muted); }
 
+  /* ===== ORDER HISTORY ===== */
+  #orders-scroll::-webkit-scrollbar { display: none; }
+
+  .order-hist-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--beige);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  .order-hist-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+
+  .order-hist-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: var(--matcha-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .order-hist-info { flex: 1; min-width: 0; }
+  .order-hist-code { font-size: 13px; font-weight: 700; color: var(--text-dark); }
+  .order-hist-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .order-hist-status {
+    font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .status-new      { background:#EDF4E6; color:var(--matcha); }
+  .status-preparing{ background:#FFF8EE; color:var(--milo); }
+  .status-ready    { background:#EDF4E6; color:var(--matcha); }
+  .status-delivering{ background:#EAF0F7; color:var(--bpea); }
+  .status-done     { background:var(--cream2); color:var(--text-muted); }
+
+  .order-hist-body {
+    border-top: 1px solid var(--beige);
+    padding: 14px 16px;
+    display: none;
+  }
+  .order-hist-body.open { display: block; }
+
+  .order-hist-items { margin-bottom: 10px; }
+  .order-hist-item {
+    font-size: 13px; color: var(--text-mid);
+    padding: 3px 0;
+    display: flex; justify-content: space-between;
+  }
+
+  .order-hist-total {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dark);
+    display: flex; justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--beige);
+    margin-bottom: 12px;
+  }
+
+  .order-hist-steps { margin-top: 4px; }
+
+  .orders-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .orders-empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .orders-empty-title { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+  .orders-empty-sub { font-size: 13px; }
+
+  .orders-loading {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-muted); font-size: 14px;
+  }
+
   /* nav indicator */
   .nav-dots {
     position: absolute;
@@ -2069,6 +2152,29 @@
       </div>
 
       <p class="landing-tagline" style="animation:fadeUp 0.6s ease 0.5s both;">Free delivery for orders above RM 20 ✦</p>
+
+      <!-- My Orders button -->
+      <div style="animation:fadeUp 0.6s ease 0.55s both;margin-top:16px;">
+        <button onclick="goTo('orders')" style="background:none;border:1.5px solid var(--beige);border-radius:100px;padding:10px 22px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.15s;">
+          📋 My Orders
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: ORDER HISTORY ========== -->
+  <div id="screen-orders" class="screen">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBackToLanding()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#2C2420" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="header-title">My Orders</span>
+    </div>
+
+    <div id="orders-scroll" style="flex:1;overflow-y:auto;padding:8px 20px 40px;scrollbar-width:none;">
+      <div id="orders-list">
+        <!-- Injected by JS -->
+      </div>
     </div>
   </div>
 
@@ -2604,7 +2710,7 @@
   //  FIREBASE SETUP
   // ═══════════════════════════════════════════
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp }
+  import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp, query, where, orderBy, getDocs }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import {
     getAuth,
@@ -2956,6 +3062,8 @@
       paymentStatus: 'pay_at_counter',
       merchantId:    'soy_oden',
       merchantName:  'Oya',
+      userEmail:     currentUser ? currentUser.email : null,
+      userName:      currentUser ? currentUser.displayName : null,
       timestamp:     serverTimestamp(),
     };
 
@@ -3441,6 +3549,8 @@
         paymentStatus:     'ai_verified',
         merchantId:        'soy_oden',
         merchantName:      'Oya',
+        userEmail:         currentUser ? currentUser.email : null,
+        userName:          currentUser ? currentUser.displayName : null,
         screenshotBase64:  smallBase64,
         timestamp:         serverTimestamp(),
       };
@@ -3586,10 +3696,169 @@
   }
   window.submitReview = submitReview;
 
-  // Reset rating UI when going to success screen
+  // ═══════════════════════════════════════════
+  //  ORDER HISTORY
+  // ═══════════════════════════════════════════
+  let historyUnsubscribers = [];
+
+  async function loadOrderHistory() {
+    const list = document.getElementById('orders-list');
+    list.innerHTML = `<div class="orders-loading">⏳ Loading your orders…</div>`;
+
+    if (!currentUser) {
+      list.innerHTML = `<div class="orders-empty">
+        <div class="orders-empty-icon">🔒</div>
+        <div class="orders-empty-title">Sign in to view orders</div>
+        <div class="orders-empty-sub">Login or sign up to track your order history</div>
+      </div>`;
+      return;
+    }
+
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('userEmail', '==', currentUser.email),
+        orderBy('timestamp', 'desc')
+      );
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        list.innerHTML = `<div class="orders-empty">
+          <div class="orders-empty-icon">📋</div>
+          <div class="orders-empty-title">No orders yet</div>
+          <div class="orders-empty-sub">Your order history will appear here</div>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = '';
+      snap.forEach((docSnap, idx) => {
+        const order = docSnap.data();
+        const card = buildHistoryCard(docSnap.id, order, idx);
+        list.appendChild(card);
+        // Subscribe to live updates for each order
+        const unsub = onSnapshot(doc(db, 'orders', docSnap.id), (s) => {
+          if (!s.exists()) return;
+          updateHistoryCardStatus(docSnap.id, s.data());
+        });
+        historyUnsubscribers.push(unsub);
+      });
+    } catch (err) {
+      console.error('History load error:', err);
+      list.innerHTML = `<div class="orders-empty">
+        <div class="orders-empty-icon">⚠️</div>
+        <div class="orders-empty-title">Couldn't load orders</div>
+        <div class="orders-empty-sub">${err.message}</div>
+      </div>`;
+    }
+  }
+
+  function buildHistoryCard(id, order, idx) {
+    const card = document.createElement('div');
+    card.className = 'order-hist-card';
+    card.id = 'hist-card-' + id;
+    card.style.animationDelay = (idx * 0.06) + 's';
+
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way', done:'Delivered' };
+    const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
+    const typeIcon = order.type === 'delivery' ? '🛵' : '🛍';
+    const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('en-MY', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+
+    const itemsHtml = (order.items || []).map(i =>
+      `<div class="order-hist-item"><span>${i.emoji} ${i.name} ×${i.qty}</span><span>RM ${(i.price * i.qty).toFixed(2)}</span></div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="order-hist-header" onclick="toggleHistCard('${id}')">
+        <div class="order-hist-icon">${typeIcon}</div>
+        <div class="order-hist-info">
+          <div class="order-hist-code">${order.code || 'Order'}</div>
+          <div class="order-hist-meta">${date} · RM ${order.total?.toFixed(2) || '—'}</div>
+        </div>
+        <div class="order-hist-status ${statusClass[order.status] || 'status-new'}" id="hist-status-badge-${id}">
+          ${statusLabels[order.status] || order.status}
+        </div>
+      </div>
+      <div class="order-hist-body" id="hist-body-${id}">
+        <div class="order-hist-items">${itemsHtml}</div>
+        <div class="order-hist-total"><span>Total Paid</span><span>RM ${order.total?.toFixed(2) || '—'}</span></div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Live Status</div>
+        <div class="order-hist-steps" id="hist-steps-${id}"></div>
+      </div>`;
+
+    // Render initial status steps
+    setTimeout(() => renderHistSteps(id, order), 0);
+    return card;
+  }
+
+  function toggleHistCard(id) {
+    const body = document.getElementById('hist-body-' + id);
+    body.classList.toggle('open');
+    if (body.classList.contains('open')) {
+      // Re-render steps when opened
+      const card = document.getElementById('hist-card-' + id);
+      // steps already rendered via live listener
+    }
+  }
+  window.toggleHistCard = toggleHistCard;
+
+  function updateHistoryCardStatus(id, order) {
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way', done:'Delivered' };
+    const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
+    const badge = document.getElementById('hist-status-badge-' + id);
+    if (badge) {
+      badge.textContent = statusLabels[order.status] || order.status;
+      badge.className = 'order-hist-status ' + (statusClass[order.status] || 'status-new');
+    }
+    renderHistSteps(id, order);
+  }
+
+  function renderHistSteps(id, order) {
+    const el = document.getElementById('hist-steps-' + id);
+    if (!el) return;
+    const allSteps = [
+      { key:'new',        icon:'🧾', label:'Order Confirmed' },
+      { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
+      { key:'ready',      icon:'✅', label:'Ready!' },
+      { key:'delivering', icon:'🛵', label:'On the Way' },
+      { key:'done',       icon:'🎉', label:'Delivered!' },
+    ];
+    const steps = order.type === 'pickup' ? allSteps.filter(s => s.key !== 'delivering') : allSteps;
+    const statusOrder = ['new','preparing','ready','delivering','done'];
+    const curIdx = statusOrder.indexOf(order.status);
+
+    el.innerHTML = steps.map(step => {
+      const sIdx = statusOrder.indexOf(step.key);
+      const isDone   = sIdx < curIdx;
+      const isActive = step.key === order.status;
+      const isPending = sIdx > curIdx;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
+        <div style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:${isDone?'var(--matcha-pale)':isActive?'var(--matcha)':'var(--cream2)'};">
+          ${isDone ? '✅' : step.icon}
+        </div>
+        <div style="font-size:13px;font-weight:${isActive?'700':'500'};color:${isActive?'var(--matcha)':isPending?'var(--text-muted)':'var(--text-dark)'};">
+          ${step.label}
+        </div>
+        ${isActive ? '<div style="margin-left:auto;font-size:11px;color:var(--matcha);font-weight:700;">● Now</div>' : isDone ? '<div style="margin-left:auto;font-size:11px;color:var(--text-muted);">✓</div>' : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Unsubscribe all history listeners when leaving orders screen
+  function cleanupHistoryListeners() {
+    historyUnsubscribers.forEach(u => u());
+    historyUnsubscribers = [];
+  }
+
+
   const _origGoTo = window.goTo;
   window.goTo = function(screen) {
+    // Clean up history listeners when leaving orders screen
+    if (screen !== 'orders') cleanupHistoryListeners();
     _origGoTo(screen);
+    if (screen === 'orders') {
+      loadOrderHistory();
+    }
     if (screen === 'success') {
       // Reset rating card
       currentRating = 0;
