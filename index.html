@@ -1937,7 +1937,7 @@
   <div class="phone-notch"></div>
 
   <!-- ========== SCREEN 0: SPLASH ========== -->
-  <div id="screen-splash" class="screen active splash-out">
+  <div id="screen-splash" class="screen active">
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:32px 28px;gap:0;">
 
       <!-- ── Phase 1: App icon ── -->
@@ -2810,6 +2810,10 @@
   let resolvedUser = null;
 
   function routeAfterAuth(user) {
+    // Instantly hide splash FIRST, then show correct screen — no flash
+    const splash = document.getElementById('screen-splash');
+    splash.style.display = 'none';
+    splash.classList.remove('active');
     if (user) {
       showLanding(user);
     } else {
