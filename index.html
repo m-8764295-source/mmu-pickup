@@ -2804,16 +2804,47 @@
     if (btn) btn.style.display = 'flex';
   }
 
-  // After splash (3s), go to login or landing
-  setTimeout(() => {
-    if (auth.currentUser) {
-      showLanding(auth.currentUser);
+  // Wait for BOTH splash AND Firebase auth to resolve before routing
+  let authResolved = false;
+  let splashEnded  = false;
+  let resolvedUser = null;
+
+  function routeAfterAuth(user) {
+    if (user) {
+      showLanding(user);
     } else {
       showLogin();
     }
+  }
+
+  // Firebase calls this quickly (usually <300ms) — track when it resolves
+  const unsubRoute = onAuthStateChanged(auth, (user) => {
+    currentUser    = user;
+    resolvedUser   = user;
+    authResolved   = true;
+    if (splashEnded) {
+      unsubRoute();
+      routeAfterAuth(user);
+    }
+    // else splash still showing — it will route when done
+  });
+
+  // Splash ends after 3s — route immediately if auth already resolved
+  setTimeout(() => {
+    splashEnded = true;
+    if (authResolved) {
+      unsubRoute();
+      routeAfterAuth(resolvedUser); // no flash — auth already known
+    }
+    // else wait up to 1.5s more for Firebase, then fallback to login
+    else {
+      setTimeout(() => {
+        if (!authResolved) routeAfterAuth(null);
+      }, 1500);
+    }
   }, 3000);
 
-  // After successful login → go to landing
+  // After successful login/signup → go to landing
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     const loginActive = document.getElementById('screen-login').classList.contains('active');
