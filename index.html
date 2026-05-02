@@ -134,7 +134,11 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    z-index: 200;
+    z-index: 9999;
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
   /* Icon pops in */
@@ -3077,27 +3081,35 @@
 
   function routeAfterAuth(user) {
     const splash = document.getElementById('screen-splash');
-    // Fade out splash smoothly, then show next screen
-    splash.style.transition = 'opacity 0.4s ease';
-    splash.style.opacity = '0';
+
+    // First: show the destination screen underneath (invisible)
+    if (user) {
+      showLanding(user);
+    } else {
+      showLogin();
+    }
+    const next = document.querySelector('.screen.active');
+    if (next) {
+      next.style.opacity = '0';
+      next.style.transition = 'none';
+    }
+
+    // Grab-style: splash gently scales up + fades out
+    splash.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
+    splash.style.transform  = 'scale(1.06)';
+    splash.style.opacity    = '0';
+
     setTimeout(() => {
       splash.style.display = 'none';
       splash.classList.remove('active');
-      if (user) {
-        showLanding(user);
-      } else {
-        showLogin();
-      }
-      // Fade in the new screen
-      const next = document.querySelector('.screen.active');
+      // Fade in the landing screen
       if (next) {
-        next.style.opacity = '0';
-        next.style.transition = 'opacity 0.35s ease';
+        next.style.transition = 'opacity 0.4s ease';
         requestAnimationFrame(() => {
           requestAnimationFrame(() => { next.style.opacity = '1'; });
         });
       }
-    }, 400);
+    }, 560);
   }
 
   // Firebase calls this quickly (usually <300ms) — track when it resolves
