@@ -2810,15 +2810,28 @@
   let resolvedUser = null;
 
   function routeAfterAuth(user) {
-    // Instantly hide splash FIRST, then show correct screen — no flash
     const splash = document.getElementById('screen-splash');
-    splash.style.display = 'none';
-    splash.classList.remove('active');
-    if (user) {
-      showLanding(user);
-    } else {
-      showLogin();
-    }
+    // Fade out splash smoothly, then show next screen
+    splash.style.transition = 'opacity 0.4s ease';
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.style.display = 'none';
+      splash.classList.remove('active');
+      if (user) {
+        showLanding(user);
+      } else {
+        showLogin();
+      }
+      // Fade in the new screen
+      const next = document.querySelector('.screen.active');
+      if (next) {
+        next.style.opacity = '0';
+        next.style.transition = 'opacity 0.35s ease';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => { next.style.opacity = '1'; });
+        });
+      }
+    }, 400);
   }
 
   // Firebase calls this quickly (usually <300ms) — track when it resolves
