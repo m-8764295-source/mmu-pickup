@@ -3082,34 +3082,25 @@
   function routeAfterAuth(user) {
     const splash = document.getElementById('screen-splash');
 
-    // First: show the destination screen underneath (invisible)
+    // Show destination underneath first (still hidden by splash)
     if (user) {
       showLanding(user);
     } else {
       showLogin();
     }
-    const next = document.querySelector('.screen.active');
-    if (next) {
-      next.style.opacity = '0';
-      next.style.transition = 'none';
-    }
 
-    // Grab-style: splash gently scales up + fades out
-    splash.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
-    splash.style.transform  = 'scale(1.06)';
-    splash.style.opacity    = '0';
+    // Simple clean fade out — no scale, no jank
+    splash.style.transition = 'opacity 0.6s ease';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        splash.style.opacity = '0';
+      });
+    });
 
     setTimeout(() => {
       splash.style.display = 'none';
       splash.classList.remove('active');
-      // Fade in the landing screen
-      if (next) {
-        next.style.transition = 'opacity 0.4s ease';
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => { next.style.opacity = '1'; });
-        });
-      }
-    }, 560);
+    }, 650);
   }
 
   // Firebase calls this quickly (usually <300ms) — track when it resolves
