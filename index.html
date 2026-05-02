@@ -3082,7 +3082,7 @@
   function routeAfterAuth(user) {
     const splash = document.getElementById('screen-splash');
 
-    // Prepare destination — slide in from right, hidden under splash
+    // Prepare destination under splash
     if (user) {
       showLanding(user);
     } else {
@@ -3090,33 +3090,32 @@
     }
     const next = document.querySelector('.screen.active');
     if (next) {
-      next.style.transform  = 'translateX(40px)';
+      next.style.transform  = 'translateX(30px)';
       next.style.opacity    = '0';
       next.style.transition = 'none';
     }
 
-    // Fade out splash
-    splash.style.transition = 'opacity 0.5s ease';
+    // Start BOTH at the same time — splash fades out, page slides in simultaneously
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        splash.style.opacity = '0';
+        // Splash fades out
+        splash.style.transition = 'opacity 0.45s ease';
+        splash.style.opacity    = '0';
+
+        // Page slides in at same moment
+        if (next) {
+          next.style.transition = 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94)';
+          next.style.opacity    = '1';
+          next.style.transform  = 'translateX(0)';
+        }
       });
     });
 
-    // Once splash gone, slide in the page
+    // Hide splash after fade completes
     setTimeout(() => {
       splash.style.display = 'none';
       splash.classList.remove('active');
-      if (next) {
-        next.style.transition = 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)';
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            next.style.opacity   = '1';
-            next.style.transform = 'translateX(0)';
-          });
-        });
-      }
-    }, 520);
+    }, 480);
   }
 
   // Firebase calls this quickly (usually <300ms) — track when it resolves
