@@ -777,8 +777,8 @@
 
   /* Floating cart */
   .floating-cart {
-    position: absolute;
-    bottom: 28px;
+    position: fixed;
+    bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--text-dark);
@@ -3551,6 +3551,7 @@
     target.style.display = 'flex';
     target.classList.add('active');
     currentScreen = prev;
+    updateBottomNav();
   }
   window.goBack = goBack;
 
