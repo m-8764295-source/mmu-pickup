@@ -3520,6 +3520,46 @@
   window.goBack = goBack;
 
   // ═══════════════════════════════════════════
+  //  BOTTOM NAV BAR
+  // ═══════════════════════════════════════════
+  const NAV_SCREENS = ['menu', 'orders', 'profile', 'landing'];
+
+  function updateBottomNav() {
+    const nav = document.getElementById('bottom-nav');
+    if (!nav) return;
+    const show = NAV_SCREENS.includes(currentScreen);
+    nav.style.display = show ? 'flex' : 'none';
+    nav.querySelectorAll('.bnav-item').forEach(item => {
+      const tab = item.dataset.tab;
+      const isActive = (tab === 'home' && currentScreen === 'landing') || tab === currentScreen;
+      item.classList.toggle('bnav-active', isActive);
+    });
+  }
+  window.updateBottomNav = updateBottomNav;
+
+  // Wrap goTo to also refresh nav
+  const _goToBase = goTo;
+  function goToWithNav(screen) {
+    _goToBase(screen);
+    updateBottomNav();
+  }
+  window.goTo = goToWithNav;
+
+  // Wrap goBackToLanding — defined later, so patch via window after load
+  function navTo(tab) {
+    if (tab === 'home') {
+      window.goBackToLanding();
+    } else {
+      window.goTo(tab);
+    }
+    updateBottomNav();
+  }
+  window.navTo = navTo;
+
+  // Init after splash clears
+  setTimeout(updateBottomNav, 3200);
+
+  // ═══════════════════════════════════════════
   //  PAYMENT METHOD SELECTION
   // ═══════════════════════════════════════════
   let payMethod = 'tng'; // default
@@ -4529,5 +4569,121 @@
     }
   }, 3500);
 </script>
+
+<!-- ===== BOTTOM NAVIGATION BAR ===== -->
+<style>
+  #bottom-nav {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    justify-content: space-around;
+    background: #ffffff;
+    border-radius: 100px;
+    padding: 10px 24px;
+    gap: 8px;
+    box-shadow: 0 4px 24px rgba(44,36,32,0.13), 0 1px 6px rgba(44,36,32,0.07);
+    z-index: 5000;
+    min-width: 280px;
+    max-width: 360px;
+    width: calc(100% - 64px);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .bnav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    border-radius: 100px;
+    padding: 7px 14px;
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.18s ease, opacity 0.18s ease;
+    flex: 1;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .bnav-item:hover {
+    opacity: 0.75;
+    transform: scale(1.07);
+  }
+
+  .bnav-item:active {
+    transform: scale(0.93);
+    opacity: 0.6;
+  }
+
+  .bnav-item svg {
+    display: block;
+    transition: stroke 0.18s ease;
+  }
+
+  .bnav-item .bnav-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: #A09080;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    transition: color 0.18s ease;
+  }
+
+  /* Active state */
+  .bnav-item.bnav-active {
+    background: #2C2420;
+  }
+
+  .bnav-item.bnav-active svg {
+    stroke: #ffffff !important;
+  }
+
+  .bnav-item.bnav-active .bnav-label {
+    color: #ffffff;
+  }
+</style>
+
+<nav id="bottom-nav" role="navigation" aria-label="Main navigation">
+  <!-- Home -->
+  <div class="bnav-item bnav-active" data-tab="home" onclick="navTo('home')" aria-label="Home">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B5D54" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    <span class="bnav-label">Home</span>
+  </div>
+
+  <!-- Search / Menu -->
+  <div class="bnav-item" data-tab="menu" onclick="navTo('menu')" aria-label="Search">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B5D54" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/>
+      <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+    </svg>
+    <span class="bnav-label">Search</span>
+  </div>
+
+  <!-- Orders -->
+  <div class="bnav-item" data-tab="orders" onclick="navTo('orders')" aria-label="Orders">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B5D54" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"/>
+      <line x1="8" y1="7" x2="16" y2="7"/>
+      <line x1="8" y1="11" x2="16" y2="11"/>
+      <line x1="8" y1="15" x2="13" y2="15"/>
+    </svg>
+    <span class="bnav-label">Orders</span>
+  </div>
+
+  <!-- Profile -->
+  <div class="bnav-item" data-tab="profile" onclick="navTo('profile')" aria-label="Profile">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B5D54" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <span class="bnav-label">Profile</span>
+  </div>
+</nav>
+
 </body>
 </html>
