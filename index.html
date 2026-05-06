@@ -3476,7 +3476,7 @@
     target.classList.add('active');
     // Sync currentScreen
     currentScreen = id.replace('screen-', '');
-    if (typeof updateBottomNav === 'function') updateBottomNav();
+    if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
 
   function showLanding(user) {
@@ -3937,6 +3937,8 @@
     currentScreen = screen;
     if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
+    // Always update bottom nav
+    if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
   window.goTo = goTo;
 
@@ -3948,7 +3950,7 @@
     target.style.display = 'flex';
     target.classList.add('active');
     currentScreen = prev;
-    updateBottomNav();
+    if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
   window.goBack = goBack;
 
@@ -3969,6 +3971,9 @@
     });
   }
   window.updateBottomNav = updateBottomNav;
+
+  // Call once on load
+  updateBottomNav();
 
   // Wrap goTo to also refresh nav
   const _goToBase = goTo;
@@ -4291,6 +4296,7 @@
 
   function openDetail(name, emoji, price, desc, type) {
     window._activeMerchant = 'oya'; // mark as Oya
+    if (typeof window.updateBottomNav === 'function') { currentScreen = 'detail'; window.updateBottomNav(); }
     detailBasePrice = parseFloat(price.replace('RM ',''));
     detailQty = 1;
     currentDetailType = type;
