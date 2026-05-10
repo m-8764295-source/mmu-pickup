@@ -2179,3 +2179,13 @@
   .bnav-item.bnav-active .bnav-label {
     color: #ffffff;
   }
+
+
+  .top-logo{
+  width:110px;
+  height: auto;
+
+  display:block;
+
+  margin-bottom:-18px;
+}
