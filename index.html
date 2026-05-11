@@ -667,56 +667,6 @@
         </div>
       </div>
 
-      <p class="section-label" style="margin-top:20px;">⭐ Today's Special</p>
-      <div style="background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid rgba(232,221,208,0.6);margin-bottom:12px;">
-        <div style="padding:12px 14px 4px;font-size:11px;font-weight:600;color:var(--matcha);letter-spacing:0.05em;text-transform:uppercase;">Choose Your Soy Milk 🥛 (select one) + add Oden to save RM 1!</div>
-        <div class="product-grid" id="today-special-grid">
-          <div class="product-card" onclick="openDetailTodaySpecial('Matcha Soy Milk','🍵','RM 7.00','A smooth blend of premium matcha and creamy soy milk. Perfect balance of earthy and sweet.','drink')" style="animation-delay:0.05s">
-            <div class="product-card-img card-matcha" style="font-size:32px;display:flex;align-items:center;justify-content:center;">🍵</div>
-            <div class="product-card-body">
-              <div class="product-card-name">Matcha Soy Milk</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Rich matcha · Silky soy</div>
-              <div class="product-card-footer">
-                <span class="product-price">RM 7.00</span>
-                <button class="add-btn" onclick="quickAdd(event,'Matcha Soy Milk',7.00,'🍵')">+</button>
-              </div>
-            </div>
-          </div>
-          <div class="product-card" onclick="openDetailTodaySpecial('Classic Soy Milk','🥛','RM 3.00','Pure handcrafted soy milk, naturally sweet with a silky texture.','drink')" style="animation-delay:0.1s">
-            <div class="product-card-img card-classic" style="font-size:32px;display:flex;align-items:center;justify-content:center;">🥛</div>
-            <div class="product-card-body">
-              <div class="product-card-name">Classic Soy Milk</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Pure · Silky</div>
-              <div class="product-card-footer">
-                <span class="product-price">RM 3.00</span>
-                <button class="add-btn" onclick="quickAdd(event,'Classic Soy Milk',3.00,'🥛')">+</button>
-              </div>
-            </div>
-          </div>
-          <div class="product-card" onclick="openDetailTodaySpecial('Butterfly Pea Soy','🫐','RM 5.00','Vibrant blue hue from butterfly pea flowers with a light floral taste.','drink')" style="animation-delay:0.2s">
-            <div class="product-card-img" style="background:linear-gradient(135deg,#e8d5f5,#c3a6e8);font-size:32px;display:flex;align-items:center;justify-content:center;">🫐</div>
-            <div class="product-card-body">
-              <div class="product-card-name">Butterfly Pea Soy</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Floral · Blue</div>
-              <div class="product-card-footer">
-                <span class="product-price">RM 5.00</span>
-                <button class="add-btn" onclick="quickAdd(event,'Butterfly Pea Soy',5.00,'🫐')">+</button>
-              </div>
-            </div>
-          </div>
-          <div class="product-card" onclick="openDetailTodaySpecial('Pandan Chocolate Soy Milk','☕','RM 5.00','Smooth chocolate meets aromatic pandan in every refreshing sip.','drink')" style="animation-delay:0.25s">
-            <div class="product-card-img" style="background:linear-gradient(135deg,#d4edda,#a8d5b5);font-size:32px;display:flex;align-items:center;justify-content:center;">☕</div>
-            <div class="product-card-body">
-              <div class="product-card-name">Pandan Choco Soy</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Smooth Chocolate · Pandan soy</div>
-              <div class="product-card-footer">
-                <span class="product-price">RM 5.00</span>
-                <button class="add-btn" onclick="quickAdd(event,'Pandan Chocolate Soy Milk',5.00,'☕')">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       <div style="background:var(--text-dark);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;cursor:pointer;" onclick="openDetail('Soy + Oden Combo','🥛🍢','RM 15.00','Pick your soy milk + Oden Set. Buy any soy milk with oden and save RM 1 on the oden!','combo')">
         <div style="font-size:40px;">🥛🍢</div>
         <div style="flex:1;">
@@ -917,7 +867,7 @@
     <div class="sticky-bar">
       <div class="sticky-price">
         <span class="sticky-price-label">Total Price</span>
-        <span class="sticky-price-val" id="detail-total">RM 7.50</span>
+        <span class="sticky-price-val" id="detail-total">RM 0.00</span>
       </div>
       <button class="cta-btn" onclick="addToCart()">Add to Cart 🛒</button>
     </div>
@@ -1903,7 +1853,7 @@
   let orderType = 'pickup';
   let cart = [];
   let detailQty = 1;
-  let detailBasePrice = 7.50;
+  let detailBasePrice = 0;
   let currentDetailType = 'drink';
   let currentOrderId = null;   // Firestore doc ID
   let unsubscribeStatus = null;
