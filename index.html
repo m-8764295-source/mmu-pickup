@@ -864,7 +864,7 @@
 
     </div>
 
-    <div class="sticky-bar">
+    <div class="sticky-bar" id="detail-sticky-bar" style="display:none;">
       <div class="sticky-price">
         <span class="sticky-price-label">Total Price</span>
         <span class="sticky-price-val" id="detail-total">RM 0.00</span>
@@ -1874,6 +1874,9 @@
     currentScreen = screen;
     if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
+    // Show/hide detail sticky bar only on detail screen
+    const dsb = document.getElementById('detail-sticky-bar');
+    if (dsb) dsb.style.display = screen === 'detail' ? '' : 'none';
     // Always update bottom nav
     if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
@@ -1887,6 +1890,9 @@
     target.style.display = 'flex';
     target.classList.add('active');
     currentScreen = prev;
+    // Show/hide detail sticky bar
+    const dsb = document.getElementById('detail-sticky-bar');
+    if (dsb) dsb.style.display = prev === 'detail' ? '' : 'none';
     if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
   window.goBack = goBack;
