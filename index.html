@@ -717,7 +717,7 @@
           </div>
         </div>
       </div>
-      <div style="background:var(--text-dark);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;cursor:pointer;" onclick="openDetail('Combo Set','🥛🍢','RM 15.00','Classic Soy Milk + Oden Set combo at a special price!','drink')">
+      <div style="background:var(--text-dark);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;cursor:pointer;" onclick="openDetail('Soy + Oden Combo','🥛🍢','RM 15.00','Pick your soy milk + Oden Set. Buy any soy milk with oden and save RM 1 on the oden!','combo')">
         <div style="font-size:40px;">🥛🍢</div>
         <div style="flex:1;">
           <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--matcha-light);margin-bottom:3px;">Combo Deal</div>
@@ -832,7 +832,43 @@
         </div>
       </div>
 
-      <div class="qty-row">
+      <!-- Combo: Soy Milk selector -->
+      <div id="combo-soymilk-options" style="display:none;">
+        <div class="customize-section">
+          <div class="customize-title" style="display:flex;align-items:center;gap:6px;">
+            🥛 Choose Your Soy Milk
+            <span style="font-size:11px;font-weight:500;color:var(--matcha);background:rgba(140,180,90,0.12);border-radius:100px;padding:2px 8px;">Oden -RM 1!</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Pick one — adds soy milk &amp; deducts RM 1 from oden</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label id="combo-radio-matcha-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:all 0.15s;" onclick="selectComboSoy('matcha')">
+              <div id="combo-radio-matcha" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;transition:all 0.15s;"></div>
+              <span style="font-size:22px;">🍵</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Matcha Soy Milk</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 7.00</span>
+            </label>
+            <label id="combo-radio-classic-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:all 0.15s;" onclick="selectComboSoy('classic')">
+              <div id="combo-radio-classic" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;transition:all 0.15s;"></div>
+              <span style="font-size:22px;">🥛</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Classic Soy Milk</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 3.00</span>
+            </label>
+            <label id="combo-radio-butterfly-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:all 0.15s;" onclick="selectComboSoy('butterfly')">
+              <div id="combo-radio-butterfly" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;transition:all 0.15s;"></div>
+              <span style="font-size:22px;">🫐</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Butterfly Pea Soy</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 5.00</span>
+            </label>
+            <label id="combo-radio-pandan-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:all 0.15s;" onclick="selectComboSoy('pandan')">
+              <div id="combo-radio-pandan" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;transition:all 0.15s;"></div>
+              <span style="font-size:22px;">☕</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Pandan Choco Soy</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 5.00</span>
+            </label>
+          </div>
+          <div id="combo-total-breakdown" style="margin-top:12px;padding:10px 12px;background:rgba(140,180,90,0.08);border-radius:10px;font-size:12px;color:var(--text-muted);display:none;"></div>
+        </div>
+      </div>
         <span class="qty-label">Quantity</span>
         <div class="qty-control">
           <button class="qty-btn" onclick="changeQty(-1)">−</button>
@@ -2272,11 +2308,21 @@
     currentDetailType = type;
     // Reset soy milk selection when opening detail
     window._selectedSoymilk = 'none';
+    window._selectedComboSoy = null;
     resetSoymilkUI();
+    // Reset combo radio UI
+    ['matcha','classic','butterfly','pandan'].forEach(function(k) {
+      var radio = document.getElementById('combo-radio-' + k);
+      var row   = document.getElementById('combo-radio-' + k + '-row');
+      if (radio) { radio.style.background = '#fff'; radio.style.borderColor = 'var(--beige)'; }
+      if (row)   { row.style.borderColor = 'var(--beige)'; row.style.background = '#fff'; }
+    });
+    var bd = document.getElementById('combo-total-breakdown');
+    if (bd) { bd.style.display = 'none'; bd.innerHTML = ''; }
     document.getElementById('detail-emoji').textContent = emoji;
     document.getElementById('detail-name').textContent = name;
     document.getElementById('detail-desc').textContent = desc;
-    document.getElementById('detail-cat').textContent = type === 'oden' ? 'Oden Selection' : 'Soy Milk Series';
+    document.getElementById('detail-cat').textContent = type === 'oden' ? 'Oden Selection' : type === 'combo' ? 'Today\'s Combo' : 'Soy Milk Series';
     const _heroImg = document.getElementById('detail-hero-img');
     if (_detailHeroImages[emoji]) {
       _heroImg.src = _detailHeroImages[emoji];
@@ -2292,6 +2338,7 @@
     document.getElementById('qty-num').textContent = '1';
     document.getElementById('detail-total').textContent = price;
     document.getElementById('oden-options').style.display  = type === 'oden'  ? 'block' : 'none';
+    document.getElementById('combo-soymilk-options').style.display = type === 'combo' ? 'block' : 'none';
     window._detailName  = name;
     window._detailEmoji = emoji;
     window._detailPrice = price;
@@ -2337,11 +2384,42 @@
     const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
     const sel = window._selectedSoymilk || 'none';
     if (currentDetailType === 'oden' && sel !== 'none') {
-      extra = (soymilkPrices[sel] || 0) - 1; // soy milk price - RM1 oden discount
-      base = detailBasePrice - 1; // oden gets RM1 off
+      extra = (soymilkPrices[sel] || 0) - 1;
+      base = detailBasePrice - 1;
+    } else if (currentDetailType === 'combo') {
+      const comboSel = window._selectedComboSoy;
+      if (comboSel) {
+        // combo total = oden (7 - 1 = 6) + soy milk price
+        base = 6 + (soymilkPrices[comboSel] || 0);
+      }
     }
     document.getElementById('detail-total').textContent = 'RM ' + ((base + extra) * detailQty).toFixed(2);
   }
+
+  // Combo soy milk selector
+  var _comboSoyNames  = { matcha: 'Matcha Soy Milk', classic: 'Classic Soy Milk', butterfly: 'Butterfly Pea Soy', pandan: 'Pandan Choco Soy' };
+  var _comboSoyEmojis = { matcha: '🍵', classic: '🥛', butterfly: '🫐', pandan: '☕' };
+  var _comboSoyPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
+
+  function selectComboSoy(key) {
+    window._selectedComboSoy = key;
+    ['matcha','classic','butterfly','pandan'].forEach(function(k) {
+      var radio = document.getElementById('combo-radio-' + k);
+      var row   = document.getElementById('combo-radio-' + k + '-row');
+      var isSelected = k === key;
+      if (radio) { radio.style.background = isSelected ? 'var(--matcha)' : '#fff'; radio.style.borderColor = isSelected ? 'var(--matcha)' : 'var(--beige)'; }
+      if (row)   { row.style.borderColor = isSelected ? 'var(--matcha)' : 'var(--beige)'; row.style.background = isSelected ? 'rgba(140,180,90,0.07)' : '#fff'; }
+    });
+    // Update breakdown
+    var bd = document.getElementById('combo-total-breakdown');
+    if (bd) {
+      var syPrice = _comboSoyPrices[key] || 0;
+      bd.style.display = 'block';
+      bd.innerHTML = '🍢 Oden Set <s style="color:#aaa;">RM 7.00</s> → <b style="color:var(--matcha);">RM 6.00</b> &nbsp;+&nbsp; ' + _comboSoyEmojis[key] + ' ' + _comboSoyNames[key] + ' RM ' + syPrice.toFixed(2) + '<br><span style="color:var(--matcha);font-weight:700;">Total: RM ' + (6 + syPrice).toFixed(2) + '</span>';
+    }
+    updateDetailTotal();
+  }
+  window.selectComboSoy = selectComboSoy;
 
   // Soy milk radio selector
   var _soymilkData = {
@@ -2391,22 +2469,32 @@
     }
     const merchantNote = (document.getElementById('detail-notes').value || '').trim();
 
-    // Handle soy milk + oden RM1 discount
-    const sel = window._selectedSoymilk || 'none';
-    if (!isMad && currentDetailType === 'oden' && sel !== 'none') {
+    // Handle combo type: oden + chosen soy milk, oden -RM1
+    if (!isMad && currentDetailType === 'combo') {
+      const comboSel = window._selectedComboSoy;
+      if (!comboSel) {
+        // No soy milk chosen — alert user
+        const bd = document.getElementById('combo-total-breakdown');
+        if (bd) { bd.style.display = 'block'; bd.innerHTML = '<span style="color:#c0392b;">⚠️ Please select a soy milk first!</span>'; }
+        return;
+      }
+      const odenItem  = { name: 'Oden Set', emoji: '🍢', price: 6, qty: qty, custom: 'With ' + _comboSoyNames[comboSel], note: merchantNote };
+      const soyItem   = { name: _comboSoyNames[comboSel], emoji: _comboSoyEmojis[comboSel], price: _comboSoyPrices[comboSel], qty: qty, custom: 'Combo deal · Oden -RM1', note: '' };
+      cart.push(odenItem);
+      cart.push(soyItem);
+      updateCartUI();
+    } else if (!isMad && currentDetailType === 'oden' && (window._selectedSoymilk || 'none') !== 'none') {
+      // Oden with soy milk add-on
+      const sel = window._selectedSoymilk;
       const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
       const soymilkNames  = { matcha: 'Matcha Soy Milk', classic: 'Classic Soy Milk', butterfly: 'Butterfly Pea Soy', pandan: 'Pandan Choco Soy' };
       const soymilkEmojis = { matcha: '🍵', classic: '🥛', butterfly: '🫐', pandan: '☕' };
-      const odenPrice = base - 1; // RM1 off oden
-      const item = { name: window._detailName, emoji: window._detailEmoji, price: odenPrice, qty: qty, custom: customText + (customText ? ' · ' : '') + '+' + soymilkNames[sel], note: merchantNote };
-      cart.push(item);
-      // Also add the soy milk as a separate line item (already paid as part of combo)
-      cart.push({ name: soymilkNames[sel], emoji: soymilkEmojis[sel], price: soymilkPrices[sel], qty: qty, custom: 'With Oden combo', note: '' });
+      cart.push({ name: window._detailName, emoji: window._detailEmoji, price: base - 1, qty, custom: customText + (customText ? ' · ' : '') + '+' + soymilkNames[sel], note: merchantNote });
+      cart.push({ name: soymilkNames[sel], emoji: soymilkEmojis[sel], price: soymilkPrices[sel], qty, custom: 'With Oden combo', note: '' });
       updateCartUI();
     } else {
       const item = { name: window._detailName, emoji: window._detailEmoji, price: base, qty: qty, custom: customText, note: merchantNote };
       if (isMad) {
-        // Add to Mad cart via window reference (cross-module)
         const mc = window._madCart || [];
         const existing = mc.find(i => i.name === item.name);
         if (existing) { existing.qty += qty; } else { mc.push(item); }
@@ -2425,7 +2513,6 @@
       btn.textContent = 'Add to Cart 🛒';
       btn.style.background = '';
       goBack();
-      // Reset merchant flag after returning
       if (isMad) window._activeMerchant = null;
     }, 800);
   }
