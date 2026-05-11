@@ -2189,3 +2189,11 @@
 
   margin-bottom:-18px;
 }
+
+.qr-image{
+  width:100%;
+  max-width:220px;
+  height:auto;
+  display:block;
+  margin:auto;
+}
