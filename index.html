@@ -2342,8 +2342,8 @@
     const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
     const sel = window._selectedSoymilk || 'none';
     if (currentDetailType === 'oden' && sel !== 'none') {
-      extra = (soymilkPrices[sel] || 0) - 1;
-      base = detailBasePrice - 1;
+      extra = soymilkPrices[sel] || 0;
+      base = detailBasePrice - 1; // oden -RM1
     } else if (currentDetailType === 'combo') {
       const comboSel = window._selectedComboSoy;
       if (comboSel) {
