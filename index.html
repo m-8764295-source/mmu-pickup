@@ -667,15 +667,64 @@
         </div>
       </div>
 
-      <p class="section-label" style="display:none;">Today's Special</p>
+      <p class="section-label" style="margin-top:20px;">⭐ Today's Special</p>
+      <div style="background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid rgba(232,221,208,0.6);margin-bottom:12px;">
+        <div style="padding:12px 14px 4px;font-size:11px;font-weight:600;color:var(--matcha);letter-spacing:0.05em;text-transform:uppercase;">Choose Your Soy Milk 🥛 (select one) + add Oden to save RM 1!</div>
+        <div class="product-grid" id="today-special-grid">
+          <div class="product-card" onclick="openDetailTodaySpecial('Matcha Soy Milk','🍵','RM 7.00','A smooth blend of premium matcha and creamy soy milk. Perfect balance of earthy and sweet.','drink')" style="animation-delay:0.05s">
+            <div class="product-card-img card-matcha" style="font-size:32px;display:flex;align-items:center;justify-content:center;">🍵</div>
+            <div class="product-card-body">
+              <div class="product-card-name">Matcha Soy Milk</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Rich matcha · Silky soy</div>
+              <div class="product-card-footer">
+                <span class="product-price">RM 7.00</span>
+                <button class="add-btn" onclick="quickAdd(event,'Matcha Soy Milk',7.00,'🍵')">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="product-card" onclick="openDetailTodaySpecial('Classic Soy Milk','🥛','RM 3.00','Pure handcrafted soy milk, naturally sweet with a silky texture.','drink')" style="animation-delay:0.1s">
+            <div class="product-card-img card-classic" style="font-size:32px;display:flex;align-items:center;justify-content:center;">🥛</div>
+            <div class="product-card-body">
+              <div class="product-card-name">Classic Soy Milk</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Pure · Silky</div>
+              <div class="product-card-footer">
+                <span class="product-price">RM 3.00</span>
+                <button class="add-btn" onclick="quickAdd(event,'Classic Soy Milk',3.00,'🥛')">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="product-card" onclick="openDetailTodaySpecial('Butterfly Pea Soy','🫐','RM 5.00','Vibrant blue hue from butterfly pea flowers with a light floral taste.','drink')" style="animation-delay:0.2s">
+            <div class="product-card-img" style="background:linear-gradient(135deg,#e8d5f5,#c3a6e8);font-size:32px;display:flex;align-items:center;justify-content:center;">🫐</div>
+            <div class="product-card-body">
+              <div class="product-card-name">Butterfly Pea Soy</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Floral · Blue</div>
+              <div class="product-card-footer">
+                <span class="product-price">RM 5.00</span>
+                <button class="add-btn" onclick="quickAdd(event,'Butterfly Pea Soy',5.00,'🫐')">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="product-card" onclick="openDetailTodaySpecial('Pandan Chocolate Soy Milk','☕','RM 5.00','Smooth chocolate meets aromatic pandan in every refreshing sip.','drink')" style="animation-delay:0.25s">
+            <div class="product-card-img" style="background:linear-gradient(135deg,#d4edda,#a8d5b5);font-size:32px;display:flex;align-items:center;justify-content:center;">☕</div>
+            <div class="product-card-body">
+              <div class="product-card-name">Pandan Choco Soy</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Smooth Chocolate · Pandan soy</div>
+              <div class="product-card-footer">
+                <span class="product-price">RM 5.00</span>
+                <button class="add-btn" onclick="quickAdd(event,'Pandan Chocolate Soy Milk',5.00,'☕')">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div style="background:var(--text-dark);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;cursor:pointer;" onclick="openDetail('Combo Set','🥛🍢','RM 15.00','Classic Soy Milk + Oden Set combo at a special price!','drink')">
         <div style="font-size:40px;">🥛🍢</div>
         <div style="flex:1;">
           <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--matcha-light);margin-bottom:3px;">Combo Deal</div>
           <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:3px;">Soy + Oden Combo</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);">Save RM 3.00 today!</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);">Save RM 1.00 today!</div>
         </div>
-        <div style="font-size:18px;font-weight:800;color:var(--matcha-light);">RM 15</div>
+        <div style="font-size:18px;font-weight:800;color:var(--matcha-light);"></div>
       </div>
     </div>
 
@@ -712,6 +761,45 @@
 
       <!-- Oden options -->
       <div id="oden-options" style="display:none;">
+        <!-- Soy Milk Add-On selector for Oden -->
+        <div class="customize-section" style="margin-bottom:0;">
+          <div class="customize-title" style="display:flex;align-items:center;gap:6px;">
+            🥛 Add Soy Milk
+            <span style="font-size:11px;font-weight:500;color:var(--matcha);background:rgba(140,180,90,0.12);border-radius:100px;padding:2px 8px;">Save RM 1.00 on Oden!</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Select one soy milk to get RM 1 off the oden price</div>
+          <div id="soymilk-options" style="display:flex;flex-direction:column;gap:8px;">
+            <label id="soymilk-none-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:border-color 0.15s;" onclick="selectSoymilk('none',this)">
+              <div id="soymilk-radio-none" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;"></div>
+              <span style="font-size:13px;color:var(--text-muted);">No soy milk</span>
+            </label>
+            <label id="soymilk-matcha-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:border-color 0.15s;" onclick="selectSoymilk('matcha',this)">
+              <div id="soymilk-radio-matcha" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;"></div>
+              <span style="font-size:22px;">🍵</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Matcha Soy Milk</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 7.00</span>
+            </label>
+            <label id="soymilk-classic-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:border-color 0.15s;" onclick="selectSoymilk('classic',this)">
+              <div id="soymilk-radio-classic" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;"></div>
+              <span style="font-size:22px;">🥛</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Classic Soy Milk</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 3.00</span>
+            </label>
+            <label id="soymilk-butterfly-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:border-color 0.15s;" onclick="selectSoymilk('butterfly',this)">
+              <div id="soymilk-radio-butterfly" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;"></div>
+              <span style="font-size:22px;">🫐</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Butterfly Pea Soy</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 5.00</span>
+            </label>
+            <label id="soymilk-pandan-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);cursor:pointer;transition:border-color 0.15s;" onclick="selectSoymilk('pandan',this)">
+              <div id="soymilk-radio-pandan" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--beige);background:#fff;flex-shrink:0;"></div>
+              <span style="font-size:22px;">☕</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Pandan Choco Soy</span>
+              <span style="font-size:13px;font-weight:600;color:var(--matcha);">RM 5.00</span>
+            </label>
+          </div>
+        </div>
+
         <div class="customize-section">
           <div class="customize-title">Included Ingredients</div>
           <div class="ingredient-grid">
@@ -2182,6 +2270,9 @@
     detailBasePrice = parseFloat(price.replace('RM ',''));
     detailQty = 1;
     currentDetailType = type;
+    // Reset soy milk selection when opening detail
+    window._selectedSoymilk = 'none';
+    resetSoymilkUI();
     document.getElementById('detail-emoji').textContent = emoji;
     document.getElementById('detail-name').textContent = name;
     document.getElementById('detail-desc').textContent = desc;
@@ -2242,8 +2333,50 @@
 
   function updateDetailTotal() {
     let base = detailBasePrice;
-    document.getElementById('detail-total').textContent = 'RM ' + (base * detailQty).toFixed(2);
+    let extra = 0;
+    const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
+    const sel = window._selectedSoymilk || 'none';
+    if (currentDetailType === 'oden' && sel !== 'none') {
+      extra = (soymilkPrices[sel] || 0) - 1; // soy milk price - RM1 oden discount
+      base = detailBasePrice - 1; // oden gets RM1 off
+    }
+    document.getElementById('detail-total').textContent = 'RM ' + ((base + extra) * detailQty).toFixed(2);
   }
+
+  // Soy milk radio selector
+  var _soymilkData = {
+    none:      { name: null,                     price: 0, emoji: null },
+    matcha:    { name: 'Matcha Soy Milk',        price: 7, emoji: '🍵' },
+    classic:   { name: 'Classic Soy Milk',       price: 3, emoji: '🥛' },
+    butterfly: { name: 'Butterfly Pea Soy',      price: 5, emoji: '🫐' },
+    pandan:    { name: 'Pandan Choco Soy',       price: 5, emoji: '☕' },
+  };
+
+  function resetSoymilkUI() {
+    ['none','matcha','classic','butterfly','pandan'].forEach(function(k) {
+      var radio = document.getElementById('soymilk-radio-' + k);
+      var row   = document.getElementById('soymilk-' + k + '-row');
+      if (radio) { radio.style.background = '#fff'; radio.style.borderColor = 'var(--beige)'; }
+      if (row)   { row.style.borderColor = 'var(--beige)'; row.style.background = '#fff'; }
+    });
+  }
+
+  function selectSoymilk(key, el) {
+    window._selectedSoymilk = key;
+    resetSoymilkUI();
+    var radio = document.getElementById('soymilk-radio-' + key);
+    var row   = document.getElementById('soymilk-' + key + '-row');
+    if (radio) { radio.style.background = 'var(--matcha)'; radio.style.borderColor = 'var(--matcha)'; }
+    if (row)   { row.style.borderColor = 'var(--matcha)'; row.style.background = 'rgba(140,180,90,0.07)'; }
+    updateDetailTotal();
+  }
+  window.selectSoymilk = selectSoymilk;
+
+  // Open detail from Today's Special (marks that a soy milk was pre-selected context)
+  function openDetailTodaySpecial(name, emoji, price, desc, type) {
+    openDetail(name, emoji, price, desc, type);
+  }
+  window.openDetailTodaySpecial = openDetailTodaySpecial;
 
   function addToCart() {
     // Detect if this detail was opened from Mad Drink Lab
@@ -2257,18 +2390,32 @@
       }
     }
     const merchantNote = (document.getElementById('detail-notes').value || '').trim();
-    const item = { name: window._detailName, emoji: window._detailEmoji, price: base, qty: qty, custom: customText, note: merchantNote };
 
-    if (isMad) {
-      // Add to Mad cart via window reference (cross-module)
-      const mc = window._madCart || [];
-      const existing = mc.find(i => i.name === item.name);
-      if (existing) { existing.qty += qty; } else { mc.push(item); }
-      window._madCart = mc;
-      if (typeof window.updateMadCartUI === 'function') window.updateMadCartUI();
-    } else {
+    // Handle soy milk + oden RM1 discount
+    const sel = window._selectedSoymilk || 'none';
+    if (!isMad && currentDetailType === 'oden' && sel !== 'none') {
+      const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
+      const soymilkNames  = { matcha: 'Matcha Soy Milk', classic: 'Classic Soy Milk', butterfly: 'Butterfly Pea Soy', pandan: 'Pandan Choco Soy' };
+      const soymilkEmojis = { matcha: '🍵', classic: '🥛', butterfly: '🫐', pandan: '☕' };
+      const odenPrice = base - 1; // RM1 off oden
+      const item = { name: window._detailName, emoji: window._detailEmoji, price: odenPrice, qty: qty, custom: customText + (customText ? ' · ' : '') + '+' + soymilkNames[sel], note: merchantNote };
       cart.push(item);
+      // Also add the soy milk as a separate line item (already paid as part of combo)
+      cart.push({ name: soymilkNames[sel], emoji: soymilkEmojis[sel], price: soymilkPrices[sel], qty: qty, custom: 'With Oden combo', note: '' });
       updateCartUI();
+    } else {
+      const item = { name: window._detailName, emoji: window._detailEmoji, price: base, qty: qty, custom: customText, note: merchantNote };
+      if (isMad) {
+        // Add to Mad cart via window reference (cross-module)
+        const mc = window._madCart || [];
+        const existing = mc.find(i => i.name === item.name);
+        if (existing) { existing.qty += qty; } else { mc.push(item); }
+        window._madCart = mc;
+        if (typeof window.updateMadCartUI === 'function') window.updateMadCartUI();
+      } else {
+        cart.push(item);
+        updateCartUI();
+      }
     }
 
     const btn = document.querySelector('#screen-detail .cta-btn');
