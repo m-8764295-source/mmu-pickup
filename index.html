@@ -781,6 +781,77 @@
             </div>
           </div>
         </div>
+
+        <!-- Add-On Ingredients -->
+        <div class="customize-section" style="margin-top:0;">
+          <div class="customize-title" style="display:flex;align-items:center;gap:6px;">
+            ➕ Add-On Ingredients
+            <span style="font-size:11px;font-weight:500;color:#e07b39;background:rgba(224,123,57,0.10);border-radius:100px;padding:2px 8px;">RM 1.00 each</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="oden-addon-list">
+
+            <!-- Cheese Sausage -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);background:#fff;">
+              <span style="font-size:20px;">🧀</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Cheese Sausage</span>
+              <span style="font-size:12px;color:#e07b39;font-weight:600;margin-right:8px;">RM 1.00</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="changeAddon('cheese_sausage',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--beige);background:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dark);">−</button>
+                <span id="addon-qty-cheese_sausage" style="font-size:13px;font-weight:700;min-width:14px;text-align:center;">0</span>
+                <button onclick="changeAddon('cheese_sausage',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--matcha);background:rgba(140,180,90,0.10);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--matcha);">+</button>
+              </div>
+            </div>
+
+            <!-- Enoki Mushroom -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);background:#fff;">
+              <span style="font-size:20px;">🍄</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Enoki Mushroom</span>
+              <span style="font-size:12px;color:#e07b39;font-weight:600;margin-right:8px;">RM 1.00</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="changeAddon('enoki_mushroom',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--beige);background:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dark);">−</button>
+                <span id="addon-qty-enoki_mushroom" style="font-size:13px;font-weight:700;min-width:14px;text-align:center;">0</span>
+                <button onclick="changeAddon('enoki_mushroom',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--matcha);background:rgba(140,180,90,0.10);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--matcha);">+</button>
+              </div>
+            </div>
+
+            <!-- White Radish -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);background:#fff;">
+              <span style="font-size:20px;">🥬</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">White Radish</span>
+              <span style="font-size:12px;color:#e07b39;font-weight:600;margin-right:8px;">RM 1.00</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="changeAddon('white_radish',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--beige);background:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dark);">−</button>
+                <span id="addon-qty-white_radish" style="font-size:13px;font-weight:700;min-width:14px;text-align:center;">0</span>
+                <button onclick="changeAddon('white_radish',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--matcha);background:rgba(140,180,90,0.10);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--matcha);">+</button>
+              </div>
+            </div>
+
+            <!-- Fish Cake -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);background:#fff;">
+              <span style="font-size:20px;">🐟</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Fish Cake</span>
+              <span style="font-size:12px;color:#e07b39;font-weight:600;margin-right:8px;">RM 1.00</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="changeAddon('fish_cake',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--beige);background:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dark);">−</button>
+                <span id="addon-qty-fish_cake" style="font-size:13px;font-weight:700;min-width:14px;text-align:center;">0</span>
+                <button onclick="changeAddon('fish_cake',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--matcha);background:rgba(140,180,90,0.10);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--matcha);">+</button>
+              </div>
+            </div>
+
+            <!-- Fish Ball -->
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--beige);background:#fff;">
+              <span style="font-size:20px;">⚪</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text-dark);flex:1;">Fish Ball</span>
+              <span style="font-size:12px;color:#e07b39;font-weight:600;margin-right:8px;">RM 1.00</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="changeAddon('fish_ball',-1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--beige);background:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-dark);">−</button>
+                <span id="addon-qty-fish_ball" style="font-size:13px;font-weight:700;min-width:14px;text-align:center;">0</span>
+                <button onclick="changeAddon('fish_ball',1)" style="width:26px;height:26px;border-radius:50%;border:1.5px solid var(--matcha);background:rgba(140,180,90,0.10);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--matcha);">+</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
 
       <!-- Combo: Soy Milk selector -->
@@ -2269,6 +2340,7 @@
     window._selectedSoymilk = 'none';
     window._selectedComboSoy = null;
     resetSoymilkUI();
+    resetOdenAddons();
     // Reset combo radio UI
     ['matcha','classic','butterfly','pandan'].forEach(function(k) {
       var radio = document.getElementById('combo-radio-' + k);
@@ -2352,7 +2424,39 @@
         base = 6 + (soymilkPrices[comboSel] || 0);
       }
     }
-    document.getElementById('detail-total').textContent = 'RM ' + ((base + extra) * detailQty).toFixed(2);
+    // Add-on ingredients: RM 1.00 each (oden type only)
+    const addonTotal = (currentDetailType === 'oden') ? getAddonTotal() : 0;
+    document.getElementById('detail-total').textContent = 'RM ' + ((base + extra + addonTotal) * detailQty).toFixed(2);
+  }
+
+  // ── Oden Add-On Ingredients ──
+  var _odenAddons = {
+    cheese_sausage: { name: 'Cheese Sausage', emoji: '🧀', qty: 0 },
+    enoki_mushroom: { name: 'Enoki Mushroom', emoji: '🍄', qty: 0 },
+    white_radish:   { name: 'White Radish',   emoji: '🥬', qty: 0 },
+    fish_cake:      { name: 'Fish Cake',       emoji: '🐟', qty: 0 },
+    fish_ball:      { name: 'Fish Ball',       emoji: '⚪', qty: 0 },
+  };
+
+  function resetOdenAddons() {
+    Object.keys(_odenAddons).forEach(function(k) {
+      _odenAddons[k].qty = 0;
+      var el = document.getElementById('addon-qty-' + k);
+      if (el) el.textContent = '0';
+    });
+  }
+
+  function changeAddon(key, delta) {
+    if (!_odenAddons[key]) return;
+    _odenAddons[key].qty = Math.max(0, _odenAddons[key].qty + delta);
+    var el = document.getElementById('addon-qty-' + key);
+    if (el) el.textContent = _odenAddons[key].qty;
+    updateDetailTotal();
+  }
+  window.changeAddon = changeAddon;
+
+  function getAddonTotal() {
+    return Object.values(_odenAddons).reduce(function(sum, a) { return sum + a.qty; }, 0);
   }
 
   // Combo soy milk selector
@@ -2424,6 +2528,9 @@
     if (!isMad) {
       if (currentDetailType === 'oden') {
         customText = Array.from(document.querySelectorAll('#oden-options .ingredient-item.selected .ingredient-name')).map(e => e.textContent).join(', ');
+        // Append add-on ingredients to custom text
+        const addonParts = Object.values(_odenAddons).filter(a => a.qty > 0).map(a => '+' + a.name + ' ×' + a.qty);
+        if (addonParts.length) customText += (customText ? ' · ' : '') + addonParts.join(', ');
       }
     }
     const merchantNote = (document.getElementById('detail-notes').value || '').trim();
@@ -2448,11 +2555,13 @@
       const soymilkPrices = { matcha: 7, classic: 3, butterfly: 5, pandan: 5 };
       const soymilkNames  = { matcha: 'Matcha Soy Milk', classic: 'Classic Soy Milk', butterfly: 'Butterfly Pea Soy', pandan: 'Pandan Choco Soy' };
       const soymilkEmojis = { matcha: '🍵', classic: '🥛', butterfly: '🫐', pandan: '☕' };
-      cart.push({ name: window._detailName, emoji: window._detailEmoji, price: base - 1, qty, custom: customText + (customText ? ' · ' : '') + '+' + soymilkNames[sel], note: merchantNote });
+      const addonCost = getAddonTotal();
+      cart.push({ name: window._detailName, emoji: window._detailEmoji, price: base - 1 + addonCost, qty, custom: customText + (customText ? ' · ' : '') + '+' + soymilkNames[sel], note: merchantNote });
       cart.push({ name: soymilkNames[sel], emoji: soymilkEmojis[sel], price: soymilkPrices[sel], qty, custom: 'With Oden combo', note: '' });
       updateCartUI();
     } else {
-      const item = { name: window._detailName, emoji: window._detailEmoji, price: base, qty: qty, custom: customText, note: merchantNote };
+      const addonCost = (!isMad && currentDetailType === 'oden') ? getAddonTotal() : 0;
+      const item = { name: window._detailName, emoji: window._detailEmoji, price: base + addonCost, qty: qty, custom: customText, note: merchantNote };
       if (isMad) {
         const mc = window._madCart || [];
         const existing = mc.find(i => i.name === item.name);
