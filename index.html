@@ -1930,7 +1930,7 @@
     }
     el.innerHTML = orders.map(o => {
       const date   = o.timestamp?.toDate ? o.timestamp.toDate().toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'}) : '—';
-      const icon   = o.type==='delivery' ? '🛵' : '🛍';
+      const icon   = o.type==='delivery' ? '📋' : '🛍';
       const status = o.status==='done' ? 'Delivered' : 'Cancelled';
       const sColor = o.status==='done' ? 'background:#EDF4E6;color:var(--matcha)' : 'background:#FEE;color:#E8654A';
       return `<div class="hist-card">
@@ -3144,9 +3144,9 @@
     card.id = 'hist-card-' + id;
     card.style.animationDelay = (idx * 0.06) + 's';
 
-    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way', done:'Delivered' };
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'Ready!', done:'Done' };
     const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
-    const typeIcon = order.type === 'delivery' ? '🛵' : '🛍';
+    const typeIcon = order.type === 'delivery' ? '📋' : '🛍';
     const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('en-MY', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
 
     const itemsHtml = (order.items || []).map(i =>
@@ -3188,7 +3188,7 @@
   window.toggleHistCard = toggleHistCard;
 
   function updateHistoryCardStatus(id, order) {
-    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way', done:'Delivered' };
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'Ready!', done:'Done' };
     const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
     const badge = document.getElementById('hist-status-badge-' + id);
     if (badge) {
