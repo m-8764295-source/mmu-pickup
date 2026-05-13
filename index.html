@@ -2140,25 +2140,27 @@
     btn.textContent = '⏳ Placing order…';
     btn.disabled = true;
 
-    const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const grandTotal = total;
+    const subtotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const discount    = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const grandTotal  = +(subtotal - discount).toFixed(2);
     const customerName  = document.getElementById('field-name').value.trim();
     const customerPhone = document.getElementById('field-phone').value.trim();
 
-    const foodTotalC   = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const foodTotalC   = grandTotal;
     const orderData = {
       code:          'SOD-' + String(Date.now()).slice(-4),
       name:          customerName,
       phone:         customerPhone,
-      type:          'pickup',
+      type:          orderType,
       address:       null,
       items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
       total:         grandTotal,
       foodTotal:     foodTotalC,
+      discount:      discount,
       serviceFee:    0,
       deliveryFee:   0,
-      platformComm:  0,         // no commission for pickup
-      merchantNett:  foodTotalC, // merchant gets full food total for pickup
+      platformComm:  0,
+      merchantNett:  foodTotalC,
       riderEarning:  0,
       status:        'new',
       rider:         null,
@@ -2174,9 +2176,13 @@
     try {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       currentOrderId = docRef.id;
-      // Update customer order stats
       if (currentUser) {
         updateDoc(doc(db,'users',currentUser.uid),{ orderCount: increment(1), lastOrderAt: new Date().toISOString() }).catch(()=>{});
+      }
+      // Increment preorder counter if discount was applied
+      if (discount > 0) {
+        try { await setDoc(doc(db,'settings','preorderCounter'), { count: increment(1) }, { merge: true }); } catch(e) {}
+        preorderDiscountEligible = false;
       }
       startStatusTracking(currentOrderId);
       goTo('success');
@@ -2250,6 +2256,22 @@
   }
   window.selectMerchant = selectMerchant;
 
+  // ═══════════════════════════════════════════
+  //  PREORDER EARLY BIRD DISCOUNT (first 10)
+  // ═══════════════════════════════════════════
+  let preorderDiscountEligible = false;
+
+  async function checkPreorderDiscount() {
+    try {
+      const snap = await getDoc(doc(db, 'settings', 'preorderCounter'));
+      const count = snap.exists() ? (snap.data().count || 0) : 0;
+      preorderDiscountEligible = count < 10;
+    } catch(e) {
+      preorderDiscountEligible = false;
+    }
+    if (orderType === 'delivery') renderCart();
+  }
+
   function oyaPreorder(e) {
     e.stopPropagation();
     activeMerchant = 'oya';
@@ -2268,6 +2290,7 @@
     if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
     // Jump straight to menu
     activateScreen('screen-menu');
+    checkPreorderDiscount();
   }
   window.oyaPreorder = oyaPreorder;
 
@@ -2701,13 +2724,17 @@
           </div>
         </div>`;
       });
+      const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
+      const finalTotal = +(total - discount).toFixed(2);
       html += `<div class="order-summary-card">
         <div class="summary-row"><span>Subtotal</span><span>RM ${total.toFixed(2)}</span></div>
-        <div class="summary-row total"><span>Total</span><span>RM ${total.toFixed(2)}</span></div>
+        ${discount > 0 ? `<div class="summary-row" style="color:var(--green2);font-weight:600;"><span>🎉 Early Bird 10% Off</span><span>−RM ${discount.toFixed(2)}</span></div>` : ''}
+        <div class="summary-row total"><span>Total</span><span>RM ${finalTotal.toFixed(2)}</span></div>
       </div>`;
     }
     list.innerHTML = html;
-    document.getElementById('cart-total-bar').textContent = 'RM ' + total.toFixed(2);
+    const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
+    document.getElementById('cart-total-bar').textContent = 'RM ' + (total - discount).toFixed(2);
   }
 
   function cartQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); updateCartUI(); renderCart(); }
@@ -2858,8 +2885,9 @@
     document.getElementById('waiting-banner').style.display = 'flex';
     document.querySelector('.waiting-text').textContent = 'Saving your order…';
 
-    const total      = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const grandTotal = total;
+    const subtotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const discount    = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const grandTotal  = +(subtotal - discount).toFixed(2);
     const customerName    = document.getElementById('field-name').value.trim()  || 'Customer';
     const customerPhone   = document.getElementById('field-phone').value.trim() || '-';
     const customerAddress = orderType === 'delivery'
@@ -2894,12 +2922,12 @@
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const smallBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
 
-      const foodTotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const foodTotal    = grandTotal;
       const serviceFee   = 0;
       const deliveryFee  = 0;
       const platformComm = orderType === 'delivery' ? +(foodTotal * 0.04).toFixed(2) : 0;
       const merchantNett = +(foodTotal - platformComm).toFixed(2);
-      const riderEarning = deliveryFee; // RM 2 delivery fee → rider
+      const riderEarning = 0;
 
       const orderData = {
         code:              'SOD-' + String(Date.now()).slice(-4),
@@ -2910,11 +2938,12 @@
         items:             cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
         total:             grandTotal,
         foodTotal,
+        discount,
         serviceFee,
         deliveryFee,
-        platformComm,     // 4% of food total → MIDI platform
-        merchantNett,     // food total - 4% → merchant
-        riderEarning,     // RM 2 delivery fee → rider
+        platformComm,
+        merchantNett,
+        riderEarning,
         status:            'new',
         rider:             null,
         paymentMethod:     'TNG',
@@ -2929,9 +2958,12 @@
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       currentOrderId = docRef.id;
-      // Update customer order stats
       if (currentUser) {
         updateDoc(doc(db,'users',currentUser.uid),{ orderCount: increment(1), lastOrderAt: new Date().toISOString() }).catch(()=>{});
+      }
+      if (discount > 0) {
+        try { await setDoc(doc(db,'settings','preorderCounter'), { count: increment(1) }, { merge: true }); } catch(e) {}
+        preorderDiscountEligible = false;
       }
       startStatusTracking(currentOrderId);
       goTo('success');
