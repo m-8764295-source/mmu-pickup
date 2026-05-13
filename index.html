@@ -1976,7 +1976,7 @@
     next.style.display = 'flex';
     next.classList.add('active');
     currentScreen = screen;
-    if (screen === 'cart') { checkPreorderDiscount().then(() => renderCart()); }
+    if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
     // Show/hide detail sticky bar only on detail screen
     const dsb = document.getElementById('detail-sticky-bar');
@@ -2747,12 +2747,13 @@
   //  CHECKOUT
   // ═══════════════════════════════════════════
   function renderCheckout() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const grandTotal = total;
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const grandTotal = +(subtotal - discount).toFixed(2);
     document.getElementById('checkout-summary').innerHTML = cart.map(item =>
       `<div class="summary-row"><span>${item.name} ×${item.qty}</span><span>RM ${(item.price*item.qty).toFixed(2)}</span></div>`
-    ).join('');
-    document.getElementById('co-subtotal').textContent = 'RM ' + total.toFixed(2);
+    ).join('') + (discount > 0 ? `<div class="summary-row" style="color:var(--green2);font-weight:600;"><span>🎉 Early Bird 10% Off</span><span>−RM ${discount.toFixed(2)}</span></div>` : '');
+    document.getElementById('co-subtotal').textContent = 'RM ' + subtotal.toFixed(2);
     document.getElementById('co-total').textContent    = 'RM ' + grandTotal.toFixed(2);
     document.getElementById('co-pay').textContent      = 'RM ' + grandTotal.toFixed(2);
     document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Pre-order';
