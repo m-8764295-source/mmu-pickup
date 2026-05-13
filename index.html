@@ -1867,11 +1867,10 @@
     { key:'new',        icon:'🧾', label:'Confirmed' },
     { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
     { key:'ready',      icon:'✅', label:'Ready' },
-    { key:'delivering', icon:'🛵', label:'On Way' },
     { key:'done',       icon:'🎉', label:'Done' },
   ];
-  const STEPS_PICKUP = STEPS_DELIVERY.filter(s => s.key !== 'delivering');
-  const STATUS_ORDER  = ['new','preparing','ready','delivering','done'];
+  const STEPS_PICKUP = STEPS_DELIVERY;
+  const STATUS_ORDER  = ['new','preparing','ready','done'];
 
   function renderActiveOrders(orders) {
     const el = document.getElementById('profile-active-orders');
@@ -3205,11 +3204,10 @@
       { key:'new',        icon:'🧾', label:'Order Confirmed' },
       { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
       { key:'ready',      icon:'✅', label:'Ready!' },
-      { key:'delivering', icon:'🛵', label:'On the Way' },
-      { key:'done',       icon:'🎉', label:'Delivered!' },
+      { key:'done',       icon:'🎉', label:'Done!' },
     ];
-    const steps = order.type === 'pickup' ? allSteps.filter(s => s.key !== 'delivering') : allSteps;
-    const statusOrder = ['new','preparing','ready','delivering','done'];
+    const steps = allSteps;
+    const statusOrder = ['new','preparing','ready','done'];
     const curIdx = statusOrder.indexOf(order.status);
 
     el.innerHTML = steps.map(step => {
