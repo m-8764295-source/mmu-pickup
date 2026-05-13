@@ -1976,7 +1976,7 @@
     next.style.display = 'flex';
     next.classList.add('active');
     currentScreen = screen;
-    if (screen === 'cart') renderCart();
+    if (screen === 'cart') { checkPreorderDiscount().then(() => renderCart()); }
     if (screen === 'checkout') renderCheckout();
     // Show/hide detail sticky bar only on detail screen
     const dsb = document.getElementById('detail-sticky-bar');
@@ -2269,7 +2269,6 @@
     } catch(e) {
       preorderDiscountEligible = false;
     }
-    if (orderType === 'delivery') renderCart();
   }
 
   function oyaPreorder(e) {
