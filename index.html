@@ -3189,6 +3189,7 @@
       </div>
       <div class="order-hist-body" id="hist-body-${id}">
         <div class="order-hist-items">${itemsHtml}</div>
+        ${order.address ? `<div style="font-size:13px;color:var(--text-mid);padding:6px 0 4px;border-top:1px solid var(--beige);margin-top:4px;">📅 Slot: <strong>${order.address}</strong></div>` : ''}
         <div class="order-hist-total"><span>Total Paid</span><span>RM ${order.total?.toFixed(2) || '—'}</span></div>
         <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Live Status</div>
         <div class="order-hist-steps" id="hist-steps-${id}"></div>
