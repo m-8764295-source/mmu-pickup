@@ -2099,32 +2099,73 @@
 
   function handleNotesPhotos(input) {
     const row = document.getElementById('notes-photos-row');
-    Array.from(input.files).forEach(file => {
-      const url = URL.createObjectURL(file);
-      const img = document.createElement('div');
-      img.style.cssText = 'width:90px;height:90px;border-radius:16px;overflow:hidden;flex-shrink:0;background:#eee;';
-      img.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
-      row.appendChild(img);
+    const current = row.querySelectorAll('.notes-photo-item').length;
+    const remaining = 5 - current;
+    if (remaining <= 0) { showPostToast('⚠️ Maximum 5 photos allowed', '#1c1c1e'); return; }
+    const files = Array.from(input.files).slice(0, remaining);
+    let rejected = 0;
+    files.forEach(file => {
+      if (file.size > 2 * 1024 * 1024) { rejected++; return; }
+      // Compress all images via canvas
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxW = 800;
+          const scale = Math.min(1, maxW / img.width);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          addNotesPhotoPreview(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     });
+    if (rejected > 0) showPostToast(`⚠️ ${rejected} photo(s) exceed 2MB limit`, '#1c1c1e');
+    input.value = '';
+    updateAddPhotoBtn();
+  }
+
+  function addNotesPhotoPreview(src) {
+    const row = document.getElementById('notes-photos-row');
+    const wrap = document.createElement('div');
+    wrap.className = 'notes-photo-item';
+    wrap.style.cssText = 'width:90px;height:90px;border-radius:16px;overflow:hidden;flex-shrink:0;background:#eee;position:relative;';
+    wrap.innerHTML = `
+      <img src="${src}" style="width:100%;height:100%;object-fit:cover;">
+      <div onclick="this.parentElement.remove();updateAddPhotoBtn();" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(0,0,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>`;
+    row.appendChild(wrap);
+    updateAddPhotoBtn();
+  }
+
+  function updateAddPhotoBtn() {
+    const row = document.getElementById('notes-photos-row');
+    const count = row.querySelectorAll('.notes-photo-item').length;
+    const addBtn = document.querySelector('[onclick*="notes-photo-input"]');
+    if (addBtn) addBtn.style.display = count >= 5 ? 'none' : 'flex';
   }
   window.handleNotesPhotos = handleNotesPhotos;
+  window.updateAddPhotoBtn = updateAddPhotoBtn;
+  window.addNotesPhotoPreview = addNotesPhotoPreview;
+
+  function showPostToast(msg, bg) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:${bg||'#1c1c1e'};color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);font-family:DM Sans,sans-serif;`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, 2000);
+  }
+  window.showPostToast = showPostToast;
 
   function submitNotesPost() {
     const title = document.getElementById('post-title')?.value.trim();
     const price = document.getElementById('post-price')?.value;
-    if (!title || !price) {
-      const toast = document.createElement('div');
-      toast.textContent = '⚠️ Please fill in title and price';
-      toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);font-family:DM Sans,sans-serif;';
-      document.body.appendChild(toast);
-      setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, 2000);
-      return;
-    }
-    const toast = document.createElement('div');
-    toast.textContent = '✅ Post submitted!';
-    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#7C6FD4;color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(124,111,212,0.4);font-family:DM Sans,sans-serif;';
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, 2000);
+    if (!title || !price) { showPostToast('⚠️ Please fill in title and price', '#1c1c1e'); return; }
+    showPostToast('✅ Post submitted!', '#7C6FD4');
     setTimeout(() => navTo('home'), 1200);
   }
   window.submitNotesPost = submitNotesPost;
