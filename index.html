@@ -2077,7 +2077,20 @@
 
   function proceedCheckout(screen) {
     if (!currentUser) {
-      goTo('login');
+      // Show modal prompt
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;font-family:DM Sans,sans-serif;';
+      overlay.innerHTML = `
+        <div style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+          <div style="font-size:36px;margin-bottom:12px;">🔐</div>
+          <div style="font-size:17px;font-weight:800;color:#1c1c1e;margin-bottom:8px;">Sign in required</div>
+          <div style="font-size:13px;color:#9a8f85;margin-bottom:24px;line-height:1.5;">You need to sign in or create an account before checking out.</div>
+          <button id="login-ok-btn" style="width:100%;padding:14px;background:#1c1c1e;color:#fff;border:none;border-radius:14px;font-family:DM Sans,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;">Sign In</button>
+          <button id="login-cancel-btn" style="width:100%;padding:12px;background:transparent;color:#9a8f85;border:none;border-radius:14px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('login-ok-btn').onclick = () => { overlay.remove(); goTo('login'); };
+      document.getElementById('login-cancel-btn').onclick = () => overlay.remove();
       return;
     }
     goTo(screen);
