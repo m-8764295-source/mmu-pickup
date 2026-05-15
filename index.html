@@ -2073,7 +2073,7 @@
   // ═══════════════════════════════════════════
   //  BOTTOM NAV BAR
   // ═══════════════════════════════════════════
-  const NAV_SCREENS = ['menu', 'menu-mad', 'orders', 'profile', 'landing', 'explore'];
+  const NAV_SCREENS = ['menu', 'menu-mad', 'orders', 'profile', 'landing', 'explore', 'post'];
 
   function proceedCheckout(screen) {
     if (!currentUser) {
@@ -2096,6 +2096,38 @@
     goTo(screen);
   }
   window.proceedCheckout = proceedCheckout;
+
+  function handleNotesPhotos(input) {
+    const row = document.getElementById('notes-photos-row');
+    Array.from(input.files).forEach(file => {
+      const url = URL.createObjectURL(file);
+      const img = document.createElement('div');
+      img.style.cssText = 'width:90px;height:90px;border-radius:16px;overflow:hidden;flex-shrink:0;background:#eee;';
+      img.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+      row.appendChild(img);
+    });
+  }
+  window.handleNotesPhotos = handleNotesPhotos;
+
+  function submitNotesPost() {
+    const title = document.getElementById('post-title')?.value.trim();
+    const price = document.getElementById('post-price')?.value;
+    if (!title || !price) {
+      const toast = document.createElement('div');
+      toast.textContent = '⚠️ Please fill in title and price';
+      toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);font-family:DM Sans,sans-serif;';
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, 2000);
+      return;
+    }
+    const toast = document.createElement('div');
+    toast.textContent = '✅ Post submitted!';
+    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#7C6FD4;color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(124,111,212,0.4);font-family:DM Sans,sans-serif;';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, 2000);
+    setTimeout(() => navTo('home'), 1200);
+  }
+  window.submitNotesPost = submitNotesPost;
 
   function filterCategory(cat) {
     if (cat === 'notes') {
@@ -3851,6 +3883,7 @@
       <div class="bnav-post-btn">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
+      <span class="bnav-label" style="margin-top:6px;">Sell</span>
     </div>
     <div class="bnav-item" data-tab="explore" onclick="navTo('explore')" aria-label="Explore">
       <div class="bnav-icon-wrap">
@@ -3924,5 +3957,120 @@
     </div>
   </div>
 
+  <!-- ========== SCREEN: POST / CREATE NOTES ========== -->
+  <div id="screen-post" class="screen" style="display:none;">
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;background:#F7F5FF;overflow:hidden;">
+
+      <!-- Header -->
+      <div style="padding:56px 20px 16px;background:#fff;flex-shrink:0;border-bottom:1px solid #EDEAF8;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:2px;">
+          <div onclick="navTo('home')" style="width:36px;height:36px;border-radius:50%;background:#F3F1FF;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C6FD4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:800;color:#1c1c1e;line-height:1.1;">Create Post</div>
+            <div style="font-size:12px;color:#9a8f85;margin-top:1px;">Sell your notes to your campus 🎓</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Content -->
+      <div style="flex:1;overflow-y:auto;padding:20px 20px 120px;">
+
+        <!-- Photos Section -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:4px;">📸 Photos</div>
+          <div style="font-size:11px;color:#b0a8c0;margin-bottom:12px;">Add clear cover photos to attract more buyers</div>
+          <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;">
+            <div onclick="document.getElementById('notes-photo-input').click()" style="width:90px;height:90px;border-radius:16px;border:2px dashed #C4BBF0;background:#FAFAFF;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;flex-shrink:0;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A89EE0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span style="font-size:10px;color:#A89EE0;font-weight:600;">Add Photo</span>
+            </div>
+            <input type="file" id="notes-photo-input" accept="image/*" multiple style="display:none;" onchange="handleNotesPhotos(this)">
+            <div id="notes-photos-row" style="display:flex;gap:10px;"></div>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:12px;">🗂 Category</div>
+          <div style="background:#fff;border-radius:18px;padding:16px;border:2px solid #7C6FD4;box-shadow:0 2px 12px rgba(124,111,212,0.12);display:flex;align-items:center;gap:14px;">
+            <div style="width:44px;height:44px;background:#F0EEFF;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📚</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1c1c1e;">Notes</div>
+              <div style="font-size:11px;color:#9a8f85;margin-top:2px;">Printed notes, summaries, past year questions, etc.</div>
+            </div>
+            <div style="margin-left:auto;width:20px;height:20px;background:#7C6FD4;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Section -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:12px;">📝 Details</div>
+          <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);">
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Title</div>
+              <input type="text" id="post-title" placeholder='e.g. "ACC1001 Final Exam Notes (Printed)"' style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Price</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:14px;font-weight:700;color:#7C6FD4;">RM</span>
+                <input type="number" id="post-price" placeholder="0.00" min="0" step="0.50" style="width:80px;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
+              </div>
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Subject / Course Code</div>
+              <input type="text" id="post-subject" placeholder='e.g. "ACC1001 — Financial Accounting"' style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Condition</div>
+              <select id="post-condition" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;-webkit-appearance:none;">
+                <option value="">Select condition…</option>
+                <option>Brand New</option>
+                <option>Like New</option>
+                <option>Good</option>
+                <option>Fair</option>
+              </select>
+            </div>
+            <div style="padding:14px 16px;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Description</div>
+              <textarea id="post-desc" rows="3" placeholder="What's included? Any highlights? Topic coverage?" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;resize:none;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meetup Details -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;margin-bottom:12px;">📍 Meetup Details</div>
+          <div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);">
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Meetup Location</div>
+              <input type="text" id="post-location" placeholder="e.g. Library, Block A, Cafe…" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
+            </div>
+            <div style="padding:14px 16px;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Available Time</div>
+              <input type="text" id="post-time" placeholder="e.g. Mon – Fri, 12PM – 6PM" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
+            </div>
+          </div>
+          <div style="margin-top:12px;background:#F0EEFF;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid #DDD8FF;">
+            <span style="font-size:18px;flex-shrink:0;">🤝</span>
+            <span style="font-size:12px;color:#6b5bb5;font-weight:500;line-height:1.4;">Meet face-to-face and pay during meetup. Stay safe on campus!</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Sticky Button -->
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 20px 36px;background:linear-gradient(to top, #F7F5FF 70%, transparent);pointer-events:none;">
+        <button onclick="submitNotesPost()" style="width:100%;padding:16px;border:none;border-radius:18px;background:linear-gradient(135deg, #A89EE0 0%, #7C6FD4 50%, #6355C7 100%);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(124,111,212,0.4);pointer-events:all;letter-spacing:0.01em;transition:transform 0.15s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="" onmouseleave="this.style.transform='scale(1)'">
+          Post Now ✨
+        </button>
+      </div>
+
+    </div>
+  </div>
 
 </html>
