@@ -1052,7 +1052,7 @@
         <span class="sticky-price-label">Total</span>
         <span class="sticky-price-val" id="cart-total-bar">RM 0.00</span>
       </div>
-      <button class="cta-btn" onclick="if(!currentUser){alert('Please sign in or create an account to checkout 😊');goTo('login');}else{goTo('checkout');}" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
+      <button class="cta-btn" onclick="proceedCheckout('checkout')" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
     </div>
   </div>
 
@@ -1300,7 +1300,7 @@
         <span class="sticky-price-label">Total</span>
         <span class="sticky-price-val" id="mad-cart-total-bar">RM 0.00</span>
       </div>
-      <button class="cta-btn" onclick="if(!currentUser){alert('Please sign in or create an account to checkout 😊');goTo('login');}else{goTo('mad-checkout');}" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
+      <button class="cta-btn" onclick="proceedCheckout('mad-checkout')" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
     </div>
   </div>
 
@@ -2074,6 +2074,15 @@
   //  BOTTOM NAV BAR
   // ═══════════════════════════════════════════
   const NAV_SCREENS = ['menu', 'menu-mad', 'orders', 'profile', 'landing', 'explore'];
+
+  function proceedCheckout(screen) {
+    if (!currentUser) {
+      goTo('login');
+      return;
+    }
+    goTo(screen);
+  }
+  window.proceedCheckout = proceedCheckout;
 
   function filterCategory(cat) {
     if (cat === 'notes') {
