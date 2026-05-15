@@ -1052,7 +1052,7 @@
         <span class="sticky-price-label">Total</span>
         <span class="sticky-price-val" id="cart-total-bar">RM 0.00</span>
       </div>
-      <button class="cta-btn" onclick="goTo('checkout')" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
+      <button class="cta-btn" onclick="if(!currentUser){alert('Please sign in or create an account to checkout 😊');goTo('login');}else{goTo('checkout');}" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
     </div>
   </div>
 
@@ -1300,7 +1300,7 @@
         <span class="sticky-price-label">Total</span>
         <span class="sticky-price-val" id="mad-cart-total-bar">RM 0.00</span>
       </div>
-      <button class="cta-btn" onclick="goTo('mad-checkout')" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
+      <button class="cta-btn" onclick="if(!currentUser){alert('Please sign in or create an account to checkout 😊');goTo('login');}else{goTo('mad-checkout');}" style="background:var(--text-dark);box-shadow:0 6px 20px rgba(44,36,32,0.3);">Checkout →</button>
     </div>
   </div>
 
@@ -1574,11 +1574,13 @@
     if (user) updateUserChip(user);
     // Update greeting
     const greeting = document.getElementById('landing-greeting');
-    if (greeting) {
+    const exploreGreeting = document.getElementById('explore-greeting');
+    if (greeting || exploreGreeting) {
       const hour = new Date().getHours();
       const tod  = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
       const name = user?.displayName ? ', ' + user.displayName.split(' ')[0] : '';
-      greeting.textContent = `Good ${tod}${name}! 👋`;
+      if (greeting) greeting.textContent = `Good ${tod}${name}! 👋`;
+      if (exploreGreeting) exploreGreeting.textContent = `Good ${tod}${name}! 👋`;
     }
     activateScreen('screen-landing');
     refreshMenuAvatar();
@@ -3847,10 +3849,26 @@
   <div id="screen-explore" class="screen" style="display:none;">
     <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow-y:auto;background:#fafaf8;">
 
-      <!-- Header -->
-      <div style="padding:56px 20px 16px;background:#fff;border-bottom:1px solid #f0ede8;">
-        <h2 style="font-size:22px;font-weight:800;color:#1c1c1e;margin:0 0 4px;">Explore</h2>
-        <p style="font-size:13px;color:#9a8f85;margin:0;">What are you looking for?</p>
+      <!-- Header (same as landing) -->
+      <div style="padding:56px 20px 14px;flex-shrink:0;background:#ffffff;border-bottom:1px solid #f0ede8;">
+
+        <!-- Top row: logo + avatar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0px;">
+          <div><img src="./assets/logo.png" class="top-logo" style="height:34px;"></div>
+          <div onclick="goTo('profile')" style="width:44px;height:44px;border-radius:50%;background:#CBD5E0;border:2px solid var(--beige);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;box-shadow:var(--shadow-sm);">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="10" r="5.5" fill="#94A3B8"/><path d="M3 23c0-5.523 4.477-10 10-10s10 4.477 10 10" fill="#94A3B8"/></svg>
+          </div>
+        </div>
+
+        <!-- Greeting -->
+        <div id="explore-greeting" style="font-size:18px;font-weight:800;color:var(--text-dark);margin:14px 0 3px;">Good day! 👋</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">What are you looking for?</div>
+
+        <!-- Search bar -->
+        <div style="display:flex;align-items:center;background:var(--white);border:1.5px solid var(--beige);border-radius:16px;padding:13px 14px;gap:10px;box-shadow:var(--shadow-sm);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A09080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search food, notes…" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);flex:1;outline:none;min-width:0;" />
+        </div>
       </div>
 
       <!-- Cards -->
