@@ -2085,7 +2085,7 @@
   // ═══════════════════════════════════════════
   //  BOTTOM NAV BAR
   // ═══════════════════════════════════════════
-  const NAV_SCREENS = ['menu', 'menu-mad', 'orders', 'profile', 'landing', 'explore', 'post', 'notes'];
+  const NAV_SCREENS = ['menu', 'menu-mad', 'orders', 'profile', 'landing', 'explore', 'post', 'notes', 'note-detail'];
 
   function proceedCheckout(screen) {
     if (!currentUser) {
@@ -2248,7 +2248,7 @@
       } else if (isReserved && !isMine) {
         actionBtn = `<button disabled style="padding:8px 14px;background:#F3F1FF;color:#b0a8c0;border:none;border-radius:12px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;">Waiting meetup…</button>`;
       }
-      return `<div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(124,111,212,0.10);border:1px solid #EDE9FF;${isSold?'opacity:0.65':''}">
+      return `<div onclick="openNoteDetail('${n.id}')" style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(124,111,212,0.10);border:1px solid #EDE9FF;${isSold?'opacity:0.65':''}cursor:pointer;-webkit-tap-highlight-color:transparent;">
         <div style="display:flex;">
           <div style="width:100px;min-height:120px;background:linear-gradient(145deg,#EDE9FF,#C5B8FF);flex-shrink:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
             ${photoHtml}${statusBadge}
@@ -2376,6 +2376,78 @@
     }
   }
   window.submitNotesPost = submitNotesPost;
+
+  // Current note being viewed
+  let currentNoteData = null;
+
+  async function openNoteDetail(noteId) {
+    try {
+      const snap = await getDoc(doc(db, 'notes', noteId));
+      if (!snap.exists()) return;
+      currentNoteData = { id: snap.id, ...snap.data() };
+      renderNoteDetail(currentNoteData);
+      goTo('note-detail');
+    } catch(e) { showPostToast('❌ Failed to load', '#e8654a'); }
+  }
+  window.openNoteDetail = openNoteDetail;
+
+  function renderNoteDetail(n) {
+    const el = document.getElementById('note-detail-content');
+    if (!el) return;
+    const status = n.status || 'available';
+    const isMine = currentUser && n.sellerUid === currentUser.uid;
+    const isSold = status === 'sold';
+    const isReserved = status === 'reserved';
+    const catColors = { IT:'#1565C0', Engineering:'#6A1B9A', Business:'#E65100', Law:'#B71C1C' };
+    const catBg = catColors[n.category] || '#7C6FD4';
+
+    const statusBadge = isSold
+      ? `<span style="background:#888;color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:100px;">SOLD</span>`
+      : isReserved
+      ? `<span style="background:#FF6D00;color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:100px;">⏳ Reserved</span>`
+      : `<span style="background:#2E7D32;color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:100px;">✓ Available</span>`;
+
+    let actionBtn = '';
+    if (isMine && isReserved) {
+      actionBtn = `<button onclick="markNoteSold('${n.id}')" style="width:100%;padding:16px;background:#2E7D32;color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;">✓ Mark as Sold</button>`;
+    } else if (!isMine && !isSold && !isReserved) {
+      actionBtn = `<button onclick="buyNote('${n.id}')" style="width:100%;padding:16px;background:linear-gradient(135deg,#9C8FE0,#7C6FD4);color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 6px 20px rgba(124,111,212,0.4);">Buy — RM ${parseFloat(n.price||0).toFixed(2)}</button>`;
+    } else if (isReserved && !isMine) {
+      actionBtn = `<button disabled style="width:100%;padding:16px;background:#F3F1FF;color:#b0a8c0;border:none;border-radius:16px;font-size:16px;font-weight:800;font-family:'DM Sans',sans-serif;">Waiting meetup…</button>`;
+    }
+
+    const photosHtml = (n.photos && n.photos.length)
+      ? `<div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;">
+          ${n.photos.map(url => `<img src="${url}" style="width:200px;height:200px;object-fit:cover;border-radius:16px;flex-shrink:0;">`).join('')}
+        </div>`
+      : `<div style="height:200px;background:linear-gradient(145deg,#EDE9FF,#C5B8FF);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:20px;">📝</div>`;
+
+    el.innerHTML = `
+      ${photosHtml}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        ${n.category ? `<div style="background:${catBg};color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:100px;">${n.category.toUpperCase()}</div>` : ''}
+        ${statusBadge}
+      </div>
+      <div style="font-size:20px;font-weight:900;color:#1c1c1e;line-height:1.3;margin-bottom:8px;">${n.title||'—'}</div>
+      <div style="font-size:24px;font-weight:900;color:#7C6FD4;margin-bottom:16px;">RM ${parseFloat(n.price||0).toFixed(2)}</div>
+      ${n.subject ? `<div style="font-size:13px;color:#7C6FD4;font-weight:700;margin-bottom:12px;">📖 ${n.subject}</div>` : ''}
+      ${n.desc ? `<div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:16px;">${n.desc}</div>` : ''}
+      <div style="background:#F7F5FF;border-radius:16px;padding:16px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px;">
+        ${n.condition ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#9a8f85;">Condition</span><span style="font-size:13px;font-weight:700;color:#1c1c1e;">${n.condition}</span></div>` : ''}
+        ${n.location ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#9a8f85;">📍 Meetup</span><span style="font-size:13px;font-weight:700;color:#1c1c1e;">${n.location}</span></div>` : ''}
+        ${n.time ? `<div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#9a8f85;">🕐 Time</span><span style="font-size:13px;font-weight:700;color:#1c1c1e;">${n.time}</span></div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:14px;background:#F7F5FF;border-radius:16px;margin-bottom:20px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:#E9E4FF;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#1c1c1e;">@${(n.sellerName||'anon').toLowerCase().replace(/\s/g,'')}</div>
+          <div style="font-size:11px;color:#b0a8c0;">${n.sellerEmail||''}</div>
+        </div>
+      </div>
+      ${actionBtn}
+    `;
+  }
+  window.renderNoteDetail = renderNoteDetail;
 
   function filterCategory(cat) {
     if (cat === 'notes') {
@@ -4386,6 +4458,21 @@
       <div id="notes-debug" style="display:none;"></div>
       <div id="notes-list" style="flex:1;overflow-y:auto;padding:16px 20px 100px;display:flex;flex-direction:column;gap:14px;"></div>
 
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: NOTE DETAIL ========== -->
+  <div id="screen-note-detail" class="screen" style="display:none;">
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;background:#F7F5FF;overflow:hidden;">
+      <!-- Header -->
+      <div style="padding:52px 20px 14px;background:#fff;flex-shrink:0;border-bottom:1px solid #EDEAF8;display:flex;align-items:center;gap:12px;">
+        <div onclick="goTo('notes')" style="width:36px;height:36px;border-radius:50%;background:#F3F1FF;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;" onmousedown="this.style.transform='scale(0.88)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="" onmouseleave="this.style.transform='scale(1)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C6FD4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div style="font-size:17px;font-weight:800;color:#1c1c1e;">Notes Detail</div>
+      </div>
+      <!-- Content -->
+      <div id="note-detail-content" style="flex:1;overflow-y:auto;padding:20px 20px 100px;"></div>
     </div>
   </div>
 
