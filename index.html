@@ -2047,15 +2047,18 @@
       cur.style.display = 'none';
     }
     const next = document.getElementById('screen-' + screen);
+    if (!next) return;
     next.style.display = 'flex';
     next.classList.add('active');
     currentScreen = screen;
     if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
-    // Show/hide detail sticky bar only on detail screen
+    if (screen === 'notes') {
+      notesActiveTab = 'All';
+      if (typeof loadNotesFromFirestore === 'function') loadNotesFromFirestore();
+    }
     const dsb = document.getElementById('detail-sticky-bar');
     if (dsb) dsb.style.display = screen === 'detail' ? '' : 'none';
-    // Always update bottom nav
     if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
   }
   window.goTo = goTo;
