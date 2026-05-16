@@ -345,13 +345,12 @@
         <!-- Mad Drink Lab Card -->
         
         <div data-merchant-card data-merchant-keywords="mad drink lab fruit juice nachos shake milkshake" style="background:var(--white);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--beige);cursor:default;">
-          <div style="position:relative;">
-            <img src="assets/mad.png" style="width:100%;height:auto;display:block;filter:brightness(0.55);">
-            <!-- Dark overlay -->
-            <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
-            <!-- Temporarily Closed badge -->
-            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);border-radius:12px;padding:10px 20px;text-align:center;white-space:nowrap;">
-              <div style="font-size:12px;font-weight:700;color:#fff;letter-spacing:0.04em;">Temporarily Closed</div>
+          <div style="position:relative;" id="mad-image-wrap">
+            <img src="assets/mad.png" style="width:100%;height:auto;display:block;" id="mad-img">
+            <div id="mad-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
+            <div id="mad-status-badge" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);border-radius:12px;padding:10px 20px;text-align:center;white-space:nowrap;">
+              <div id="mad-status-text" style="font-size:12px;font-weight:700;color:#fff;letter-spacing:0.04em;">Temporarily Closed</div>
+              <div id="mad-next-time" style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:4px;display:none;"></div>
             </div>
           </div>
           <div style="padding:14px 16px;">
@@ -2468,6 +2467,73 @@
     `;
   }
   window.renderNoteDetail = renderNoteDetail;
+
+  // ── MAD DRINK LAB SCHEDULE ───────────────────────
+  // Schedule (Malaysia time, UTC+8):
+  // May 19: 10am–1pm
+  // May 20: 2pm–5pm
+  // May 21: 1pm–3pm
+  function checkMadSchedule() {
+    const now = new Date();
+    const myt = new Date(now.getTime() + (8 * 60 - now.getTimezoneOffset()) * 60000);
+    const year  = myt.getUTCFullYear();
+    const month = myt.getUTCMonth() + 1;
+    const day   = myt.getUTCDate();
+    const hour  = myt.getUTCHours();
+    const min   = myt.getUTCMinutes();
+    const t     = hour + min / 60;
+
+    // Schedule slots
+    const slots = [
+      { day: 19, start: 10, end: 13, label: '19 May · 10am – 1pm' },
+      { day: 20, start: 14, end: 17, label: '20 May · 2pm – 5pm' },
+      { day: 21, start: 13, end: 15, label: '21 May · 1pm – 3pm' },
+    ];
+
+    let isOpen = false;
+    let nextLabel = '';
+
+    if (year === 2026 && month === 5) {
+      for (let i = 0; i < slots.length; i++) {
+        const s = slots[i];
+        if (day === s.day && t >= s.start && t < s.end) { isOpen = true; break; }
+        // Find next upcoming slot
+        if (!nextLabel) {
+          if (day < s.day || (day === s.day && t < s.start)) {
+            nextLabel = s.label;
+          }
+        }
+      }
+    }
+
+    const img    = document.getElementById('mad-img');
+    const overlay= document.getElementById('mad-overlay');
+    const badge  = document.getElementById('mad-status-badge');
+    const text   = document.getElementById('mad-status-text');
+    const nextEl = document.getElementById('mad-next-time');
+    const card   = badge?.closest('[data-merchant-card]');
+
+    if (isOpen) {
+      if (img)    img.style.filter = '';
+      if (overlay) overlay.style.background = 'rgba(0,0,0,0)';
+      if (text)   text.textContent = '🟢 Open Now';
+      if (nextEl) nextEl.style.display = 'none';
+      if (badge)  { badge.style.background = 'rgba(46,125,50,0.85)'; badge.style.borderColor = 'rgba(255,255,255,0.4)'; }
+      if (card)   { card.style.cursor = 'pointer'; card.onclick = () => selectMerchant('mad'); }
+    } else {
+      if (img)    img.style.filter = 'brightness(0.55)';
+      if (overlay) overlay.style.background = 'rgba(0,0,0,0.35)';
+      if (text)   text.textContent = 'Temporarily Closed';
+      if (nextEl) { nextEl.textContent = nextLabel; nextEl.style.display = nextLabel ? 'block' : 'none'; }
+      if (badge)  { badge.style.background = 'rgba(255,255,255,0.15)'; badge.style.borderColor = 'rgba(255,255,255,0.3)'; }
+      if (card)   { card.style.cursor = 'default'; card.onclick = null; }
+    }
+  }
+  window.checkMadSchedule = checkMadSchedule;
+  // Run on load and every minute
+  setTimeout(checkMadSchedule, 500);
+  setInterval(checkMadSchedule, 60000);
+  // ── END MAD SCHEDULE ────────────────────────────
 
   function filterCategory(cat) {
     if (cat === 'notes') {
