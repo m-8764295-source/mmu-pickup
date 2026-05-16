@@ -361,7 +361,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">🛍 Pick Up</span>
               <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">🛵 Delivery</span>
-              <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">⏱ ~15 min</span>
+              <span style="background:var(--cream);border-radius:100px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--text-mid);">📍 Rimbun Ilmu</span>
             </div>
           </div>
         </div>
@@ -2163,15 +2163,15 @@
     if (notesUnsubscribe) notesUnsubscribe();
     const list = document.getElementById('notes-list');
     if (list) list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:32px;margin-bottom:8px;">⏳</div><div style="font-size:14px;">Loading notes…</div></div>`;
-    const q = query(collection(db, 'notes'), orderBy('timestamp', 'desc'));
+    const q = collection(db, 'notes');
     notesUnsubscribe = onSnapshot(q, snap => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Apply current tab + search filter
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
       const search = document.querySelector('#screen-notes input[type="text"]')?.value || '';
       applyNotesFilter(data, search);
     }, err => {
-      console.error(err);
-      showPostToast('❌ Failed to load notes', '#e8654a');
+      console.error('Notes load error:', err);
+      if (list) list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#e8654a;font-size:13px;">❌ ${err.message}</div>`;
     });
   }
 
@@ -2272,17 +2272,18 @@
     el.style.background = '#7C6FD4'; el.style.color = '#fff';
     const search = document.querySelector('#screen-notes input[type="text"]')?.value || '';
     // Re-fetch and filter
-    const q2 = query(collection(db, 'notes'), orderBy('timestamp', 'desc'));
+    const q2 = collection(db, 'notes');
     getDocs(q2).then(snap => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
       applyNotesFilter(data, search);
     });
   }
 
   function filterNotes(q) {
-    const q2 = query(collection(db, 'notes'), orderBy('timestamp', 'desc'));
-    getDocs(q2).then(snap => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    getDocs(collection(db, 'notes')).then(snap => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
       applyNotesFilter(data, q);
     });
   }
