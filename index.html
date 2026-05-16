@@ -2215,60 +2215,61 @@
 
   function renderNotesCards(data) {
     const list = document.getElementById('notes-list');
-    const debug = document.getElementById('notes-debug');
-    if (debug) debug.innerHTML = `<span style="color:#7C6FD4;font-size:11px;">Found ${data.length} note(s)</span> <button onclick="loadNotesFromFirestore()" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:8px;">🔄 Reload</button>`;
     if (!list) return;
     if (!data.length) {
-      list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:40px;margin-bottom:12px;">🔍</div><div style="font-size:15px;font-weight:600;">No notes found</div></div>`;
+      list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:48px;margin-bottom:12px;">📭</div><div style="font-size:15px;font-weight:700;color:#7C6FD4;">No notes yet</div><div style="font-size:12px;margin-top:4px;">Be the first to sell your notes!</div></div>`;
       return;
     }
-    try {
-      list.innerHTML = data.map(n => {
-        const status = n.status || 'available';
-        const isMine = currentUser && n.sellerUid === currentUser.uid;
-        const isSold = status === 'sold';
-        const isReserved = status === 'reserved';
-        const statusColor = status === 'reserved' ? '#E65100' : status === 'sold' ? '#888' : '#2E7D32';
-        const statusBg = status === 'reserved' ? '#FFF3E0' : status === 'sold' ? '#F0F0F0' : '#E8F5E9';
-        const statusLabel = status === 'reserved' ? '🟠 Reserved' : status === 'sold' ? '⚫ Sold' : '🟢 Available';
-
-        let actionBtn = '';
-        if (isMine && isReserved) {
-          actionBtn = `<button onclick="markNoteSold('${n.id}')" style="background:#2E7D32;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Mark as Sold</button>`;
-        } else if (!isMine && status === 'available') {
-          actionBtn = `<button onclick="buyNote('${n.id}')" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Buy</button>`;
-        }
-
-        const photoHtml = (n.photos && n.photos[0])
-          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:44px;\\'>📚</span>'">`
-          : `<span style="font-size:44px;">📚</span>`;
-
-        return `<div style="background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 3px 16px rgba(124,111,212,0.08);border:1px solid #F0EEFF;${isSold?'opacity:0.7':''}">
-          <div style="display:flex;">
-            <div style="width:110px;min-height:130px;background:linear-gradient(145deg,#EDE9FF,#D5CEFF);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">${photoHtml}</div>
-            <div style="flex:1;padding:14px;min-width:0;">
-              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
-                <div style="font-size:13px;font-weight:800;color:#1c1c1e;line-height:1.3;flex:1;">${n.title||'—'}</div>
-                <div style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:800;padding:3px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;">${statusLabel}</div>
-              </div>
-              <div style="font-size:10px;color:#7C6FD4;font-weight:700;margin-bottom:4px;">${n.subject||''}</div>
-              <div style="font-size:11px;color:#9a8f85;margin-bottom:8px;">${(n.desc||'').slice(0,80)}${(n.desc||'').length>80?'…':''}</div>
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:11px;color:#555;">👤 ${n.sellerName||'Anonymous'}</span>
-                <span style="font-size:16px;font-weight:800;color:#7C6FD4;">RM ${parseFloat(n.price||0).toFixed(2)}</span>
-              </div>
+    const catColors = { IT:'#1565C0', Engineering:'#6A1B9A', Business:'#E65100', Law:'#B71C1C' };
+    list.innerHTML = data.map(n => {
+      const status = n.status || 'available';
+      const isMine = currentUser && n.sellerUid === currentUser.uid;
+      const isSold = status === 'sold';
+      const isReserved = status === 'reserved';
+      const catBg = catColors[n.category] || '#7C6FD4';
+      const photoHtml = (n.photos && n.photos[0])
+        ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
+        : `<span style="font-size:36px;">📝</span>`;
+      const statusBadge = isSold
+        ? `<div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:100px;">SOLD</div>`
+        : isReserved
+        ? `<div style="position:absolute;top:8px;left:8px;background:#FF6D00;color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:100px;">⏳ Reserved</div>`
+        : `<div style="position:absolute;top:8px;left:8px;background:#2E7D32;color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:100px;">✓ Available</div>`;
+      let actionBtn = '';
+      if (isMine && isReserved) {
+        actionBtn = `<button onclick="markNoteSold('${n.id}')" style="padding:8px 14px;background:#2E7D32;color:#fff;border:none;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">✓ Mark Sold</button>`;
+      } else if (!isMine && !isSold && !isReserved) {
+        actionBtn = `<button onclick="buyNote('${n.id}')" style="padding:8px 16px;background:linear-gradient(135deg,#9C8FE0,#7C6FD4);color:#fff;border:none;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 3px 10px rgba(124,111,212,0.35);">Buy</button>`;
+      } else if (isReserved && !isMine) {
+        actionBtn = `<button disabled style="padding:8px 14px;background:#F3F1FF;color:#b0a8c0;border:none;border-radius:12px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif;">Waiting meetup…</button>`;
+      }
+      return `<div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(124,111,212,0.10);border:1px solid #EDE9FF;${isSold?'opacity:0.65':''}">
+        <div style="display:flex;">
+          <div style="width:100px;min-height:120px;background:linear-gradient(145deg,#EDE9FF,#C5B8FF);flex-shrink:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+            ${photoHtml}${statusBadge}
+          </div>
+          <div style="flex:1;padding:12px 14px;min-width:0;display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              ${n.category ? `<div style="background:${catBg};color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:100px;">${n.category.toUpperCase()}</div>` : '<div></div>'}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DDD8FF" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div style="font-size:13px;font-weight:800;color:#1c1c1e;line-height:1.3;">${n.title||'—'}</div>
+            <div style="font-size:11px;color:#9a8f85;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${n.desc||''}</div>
+            <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+              <div style="width:16px;height:16px;border-radius:50%;background:#E9E4FF;display:flex;align-items:center;justify-content:center;font-size:8px;">👤</div>
+              <span style="font-size:10px;color:#7C6FD4;font-weight:600;">@${(n.sellerName||'anon').toLowerCase().replace(/\s/g,'')}</span>
+              ${n.rating ? `<span style="font-size:10px;color:#F5A623;font-weight:700;margin-left:auto;">★ ${n.rating}</span>` : '<span style="font-size:10px;color:#b0a8c0;margin-left:auto;">New</span>'}
             </div>
           </div>
-          <div style="background:#F7F5FF;padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid #EDEAF8;">
-            ${n.location ? `<span style="font-size:11px;color:#7C6FD4;font-weight:600;">📍 ${n.location}</span>` : ''}
-            ${n.time ? `<span style="font-size:11px;color:#b0a8c0;">· 🕐 ${n.time}</span>` : ''}
-            <div style="margin-left:auto;">${actionBtn}</div>
-          </div>
-        </div>`;
-      }).join('');
-    } catch(e) {
-      list.innerHTML = `<div style="padding:20px;color:#e8654a;font-size:12px;">Render error: ${e.message}</div>`;
-    }
+        </div>
+        <div style="padding:10px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid #F3F1FF;background:#FAFAFF;">
+          <div style="font-size:17px;font-weight:900;color:#7C6FD4;">RM ${parseFloat(n.price||0).toFixed(2)}</div>
+          ${n.condition ? `<div style="font-size:9px;font-weight:700;color:#9a8f85;background:#F0EEF8;padding:2px 8px;border-radius:100px;">${n.condition}</div>` : ''}
+          ${n.location ? `<div style="font-size:10px;color:#b0a8c0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📍 ${n.location}</div>` : ''}
+          <div style="margin-left:auto;flex-shrink:0;">${actionBtn}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   function switchNotesTab(el, tab) {
