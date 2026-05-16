@@ -1557,18 +1557,18 @@
   let currentUser = null;
 
   function activateScreen(id) {
-    // Hide all screens
     document.querySelectorAll('.screen').forEach(s => {
       s.style.display = 'none';
       s.classList.remove('active');
     });
-    // Show target
     const target = document.getElementById(id);
     target.style.display = 'flex';
     target.classList.add('active');
-    // Sync currentScreen
     currentScreen = id.replace('screen-', '');
     if (typeof window.updateBottomNav === 'function') window.updateBottomNav();
+    // Fire data-onshow handler
+    const onshow = target.getAttribute('data-onshow');
+    if (onshow) { try { eval(onshow); } catch(e) {} }
   }
 
   function showLanding(user) {
@@ -2324,37 +2324,47 @@
     if (!title || !price) { showPostToast('⚠️ Please fill in title and price', '#1c1c1e'); return; }
 
     try {
-      // Upload photos to Firebase Storage
-      const photoURLs = [];
-      if (notesPhotoFiles.length > 0) {
-        showPostToast('⏳ Uploading photos…', '#7C6FD4');
-        for (const file of notesPhotoFiles) {
-          const path = `notes/${currentUser.uid}/${Date.now()}_${file.name}`;
-          const storageRef = ref(storage, path);
-          await uploadBytes(storageRef, file);
-          const url = await getDownloadURL(storageRef);
-          photoURLs.push(url);
-        }
-      }
-
       showPostToast('⏳ Posting…', '#7C6FD4');
-      await addDoc(collection(db, 'notes'), {
+
+      // Post immediately without waiting for photos
+      const docRef = await addDoc(collection(db, 'notes'), {
         title, price: parseFloat(price), subject, condition, category, desc, location, time,
-        photos: photoURLs, status: 'available',
+        photos: [], status: 'available',
         sellerUid:   currentUser.uid,
         sellerName:  currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
         sellerEmail: currentUser.email,
         rating: 0, reviews: 0,
         timestamp: serverTimestamp(),
       });
+
       showPostToast('✅ Posted successfully!', '#7C6FD4');
+
+      // Clear form
       ['post-title','post-price','post-subject','post-desc','post-location','post-time'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       document.getElementById('post-condition').value = '';
       document.getElementById('post-category').value = '';
       document.getElementById('notes-photos-row').innerHTML = '';
       notesPhotoFiles = [];
       updateAddPhotoBtn();
-      setTimeout(() => goTo('notes'), 1000);
+      setTimeout(() => navTo('notes'), 800);
+
+      // Upload photos in background if any
+      if (notesPhotoFiles.length > 0) {
+        const photoURLs = [];
+        for (const file of notesPhotoFiles) {
+          try {
+            const path = `notes/${currentUser.uid}/${Date.now()}_${file.name}`;
+            const storageRef = ref(storage, path);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            photoURLs.push(url);
+          } catch(e) { console.error('Photo upload failed:', e); }
+        }
+        if (photoURLs.length > 0) {
+          await updateDoc(doc(db, 'notes', docRef.id), { photos: photoURLs });
+        }
+      }
+
     } catch(e) {
       console.error(e);
       showPostToast('❌ Failed: ' + e.message, '#e8654a');
@@ -2403,7 +2413,7 @@
     } else {
       window.goTo(tab);
       if (tab === 'notes') {
-        setTimeout(() => { notesActiveTab = 'All'; loadNotesFromFirestore(); }, 100);
+        setTimeout(() => { notesActiveTab = 'All'; loadNotesFromFirestore(); }, 500);
       }
     }
     updateBottomNav();
@@ -4324,7 +4334,7 @@
   </div>
 
   <!-- ========== SCREEN: NOTES MARKETPLACE ========== -->
-  <div id="screen-notes" class="screen" style="display:none;">
+  <div id="screen-notes" class="screen" style="display:none;" data-onshow="loadNotesFromFirestore()">
     <div style="width:100%;height:100%;display:flex;flex-direction:column;background:#F7F5FF;overflow:hidden;">
 
       <!-- Header -->
