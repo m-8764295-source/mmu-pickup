@@ -1521,6 +1521,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, doc, onSnapshot, serverTimestamp, query, where, orderBy, getDocs, setDoc, getDoc, updateDoc, increment }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
   import {
     getAuth,
     createUserWithEmailAndPassword,
@@ -1543,6 +1545,7 @@
 
   const app     = initializeApp(firebaseConfig);
   const db      = getFirestore(app);
+  const storage = getStorage(app);
   const auth    = getAuth(app);
   // Expose for other modules
   window._midi_db   = db;
@@ -2099,6 +2102,9 @@
   }
   window.proceedCheckout = proceedCheckout;
 
+  // Store files for upload
+  let notesPhotoFiles = [];
+
   function handleNotesPhotos(input) {
     const row = document.getElementById('notes-photos-row');
     const current = row.querySelectorAll('.notes-photo-item').length;
@@ -2108,41 +2114,37 @@
     let rejected = 0;
     files.forEach(file => {
       if (file.size > 2 * 1024 * 1024) { rejected++; return; }
-      // Compress all images via canvas
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxW = 800;
-          const scale = Math.min(1, maxW / img.width);
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          addNotesPhotoPreview(canvas.toDataURL('image/jpeg', 0.75));
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      notesPhotoFiles.push(file);
+      const url = URL.createObjectURL(file);
+      addNotesPhotoPreview(url, notesPhotoFiles.length - 1);
     });
     if (rejected > 0) showPostToast(`⚠️ ${rejected} photo(s) exceed 2MB limit`, '#1c1c1e');
     input.value = '';
     updateAddPhotoBtn();
   }
 
-  function addNotesPhotoPreview(src) {
+  function addNotesPhotoPreview(src, fileIndex) {
     const row = document.getElementById('notes-photos-row');
     const wrap = document.createElement('div');
     wrap.className = 'notes-photo-item';
+    wrap.dataset.fileIndex = fileIndex;
     wrap.style.cssText = 'width:90px;height:90px;border-radius:16px;overflow:hidden;flex-shrink:0;background:#eee;position:relative;';
     wrap.innerHTML = `
       <img src="${src}" style="width:100%;height:100%;object-fit:cover;">
-      <div onclick="this.parentElement.remove();updateAddPhotoBtn();" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(0,0,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <div onclick="removeNotesPhoto(this.parentElement);" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(0,0,0,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </div>`;
     row.appendChild(wrap);
     updateAddPhotoBtn();
   }
+
+  function removeNotesPhoto(el) {
+    const idx = parseInt(el.dataset.fileIndex);
+    notesPhotoFiles.splice(idx, 1);
+    el.remove();
+    updateAddPhotoBtn();
+  }
+  window.removeNotesPhoto = removeNotesPhoto;
 
   function updateAddPhotoBtn() {
     const row = document.getElementById('notes-photos-row');
@@ -2237,8 +2239,8 @@
           actionBtn = `<button onclick="buyNote('${n.id}')" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Buy</button>`;
         }
 
-        const photoHtml = (n.photos && n.photos[0] && n.photos[0].startsWith('data:'))
-          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=\\'font-size:44px;\\'>📚</span>'">`
+        const photoHtml = (n.photos && n.photos[0])
+          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:44px;\\'>📚</span>'">`
           : `<span style="font-size:44px;">📚</span>`;
 
         return `<div style="background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 3px 16px rgba(124,111,212,0.08);border:1px solid #F0EEFF;${isSold?'opacity:0.7':''}">
@@ -2320,14 +2322,24 @@
 
     if (!title || !price) { showPostToast('⚠️ Please fill in title and price', '#1c1c1e'); return; }
 
-    // Collect photo data URLs
-    const photos = Array.from(document.querySelectorAll('#notes-photos-row .notes-photo-item img')).map(img => img.src);
-
     try {
+      // Upload photos to Firebase Storage
+      const photoURLs = [];
+      if (notesPhotoFiles.length > 0) {
+        showPostToast('⏳ Uploading photos…', '#7C6FD4');
+        for (const file of notesPhotoFiles) {
+          const path = `notes/${currentUser.uid}/${Date.now()}_${file.name}`;
+          const storageRef = ref(storage, path);
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          photoURLs.push(url);
+        }
+      }
+
       showPostToast('⏳ Posting…', '#7C6FD4');
       await addDoc(collection(db, 'notes'), {
         title, price: parseFloat(price), subject, condition, category, desc, location, time,
-        photos, status: 'available',
+        photos: photoURLs, status: 'available',
         sellerUid:   currentUser.uid,
         sellerName:  currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
         sellerEmail: currentUser.email,
@@ -2335,16 +2347,16 @@
         timestamp: serverTimestamp(),
       });
       showPostToast('✅ Posted successfully!', '#7C6FD4');
-      // Clear form
       ['post-title','post-price','post-subject','post-desc','post-location','post-time'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       document.getElementById('post-condition').value = '';
       document.getElementById('post-category').value = '';
       document.getElementById('notes-photos-row').innerHTML = '';
+      notesPhotoFiles = [];
       updateAddPhotoBtn();
       setTimeout(() => goTo('notes'), 1000);
     } catch(e) {
       console.error(e);
-      showPostToast('❌ Failed to post. Try again.', '#e8654a');
+      showPostToast('❌ Failed: ' + e.message, '#e8654a');
     }
   }
   window.submitNotesPost = submitNotesPost;
