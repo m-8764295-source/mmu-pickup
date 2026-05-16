@@ -344,7 +344,7 @@
 
         <!-- Mad Drink Lab Card -->
         
-        <div data-merchant-card data-merchant-keywords="mad drink lab fruit juice nachos shake milkshake" style="background:var(--white);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--beige);cursor:default;">
+        <div data-merchant-card data-merchant-keywords="mad drink lab fruit juice nachos shake milkshake" onclick="selectMerchant('mad')" style="background:var(--white);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--beige);cursor:pointer;">
           <div style="position:relative;" id="mad-image-wrap">
             <img src="assets/mad.png" style="width:100%;height:auto;display:block;" id="mad-img">
             <div id="mad-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
@@ -500,7 +500,7 @@
         </div>
 
         <div class="product-card" onclick="openMadDetail('Zapple Soda','🍎','RM 4.00','Sparkling apple soda with a crisp, fizzy kick.','juice')" style="animation-delay:0.1s">
-          <div class="product-card-img" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);">🍎</div>
+          <div class="product-card-img" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);overflow:hidden;padding:0;"><img src="assets/zapple-soda.png" style="width:100%;height:100%;object-fit:cover;"></div>
           <div class="product-card-body">
             <div class="product-card-name">Zapple Soda</div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Sparkling · Apple · Fizzy</div>
@@ -4133,25 +4133,35 @@
   function openMadDetail(name, emoji, price, desc, type) {
     window._activeMerchant = 'mad';
     const basePrice = parseFloat(price.replace('RM ',''));
-    // Reuse shared detail screen vars via window
     window._detailName  = name;
     window._detailEmoji = emoji;
     window._detailPrice = price;
-    // Set shared detail screen content
     document.getElementById('detail-emoji').textContent = emoji;
     document.getElementById('detail-name').textContent  = name;
     document.getElementById('detail-desc').textContent  = desc;
-    document.getElementById('detail-cat').textContent   = type === 'snack' ? 'Snacks' : 'Fruit Juice';
+    document.getElementById('detail-cat').textContent   = type === 'snack' ? 'Snacks' : 'Drinks';
     document.getElementById('detail-hero').style.background = madHeroColors[emoji] || 'linear-gradient(135deg,#e8f5e9,#c8e6c9)';
+
+    // Show custom image if available
+    const heroImg = document.getElementById('detail-hero-img');
+    const imageMap = { 'Zapple Soda': 'assets/zapple-soda.png' };
+    if (heroImg) {
+      if (imageMap[name]) {
+        heroImg.src = imageMap[name];
+        heroImg.style.display = 'block';
+      } else {
+        heroImg.src = '';
+        heroImg.style.display = 'none';
+      }
+    }
+
     document.getElementById('qty-num').textContent = '1';
     document.getElementById('detail-total').textContent = price;
-    // Hide oden options (Mad items have no oden)
     document.getElementById('oden-options').style.display  = 'none';
     const notesEl = document.getElementById('detail-notes');
     if (notesEl) { notesEl.value = ''; }
     const countEl = document.getElementById('notes-count');
     if (countEl) countEl.textContent = '0';
-    // Store base price for qty updates
     window._madDetailBasePrice = basePrice;
     window._madDetailQty = 1;
     window.goTo('detail');
