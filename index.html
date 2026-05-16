@@ -2164,20 +2164,9 @@
     const listEl = document.getElementById('notes-list');
     if (listEl) listEl.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:32px;margin-bottom:8px;">⏳</div><div style="font-size:14px;">Loading notes…</div></div>`;
     notesUnsubscribe = onSnapshot(collection(db, 'notes'), snap => {
-      const el = document.getElementById('notes-list');
-      if (!el) return;
-      if (snap.empty) {
-        el.innerHTML = `<div style="text-align:center;padding:40px;color:#888;">No notes yet</div>`;
-        return;
-      }
-      el.innerHTML = snap.docs.map(d => {
-        const n = d.data();
-        return `<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:8px;border:1px solid #e0d8ff;">
-          <div style="font-weight:700;font-size:14px;color:#1c1c1e;">${n.title||'No title'}</div>
-          <div style="font-size:12px;color:#7C6FD4;margin-top:4px;">RM ${n.price||0} · ${n.sellerName||'Unknown'}</div>
-          <div style="font-size:11px;color:#888;margin-top:4px;">${n.desc||''}</div>
-        </div>`;
-      }).join('');
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
+      renderNotesCards(data);
     }, err => {
       const el = document.getElementById('notes-list');
       if (el) el.innerHTML = `<div style="color:#e8654a;padding:20px;">❌ ${err.message}</div>`;
@@ -2248,8 +2237,8 @@
           actionBtn = `<button onclick="buyNote('${n.id}')" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Buy</button>`;
         }
 
-        const photoHtml = (n.photos && n.photos[0])
-          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;">`
+        const photoHtml = (n.photos && n.photos[0] && n.photos[0].startsWith('data:'))
+          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=\\'font-size:44px;\\'>📚</span>'">`
           : `<span style="font-size:44px;">📚</span>`;
 
         return `<div style="background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 3px 16px rgba(124,111,212,0.08);border:1px solid #F0EEFF;${isSold?'opacity:0.7':''}">
@@ -4360,9 +4349,7 @@
       </div>
 
       <!-- Cards List -->
-      <div id="notes-debug" style="text-align:center;font-size:11px;color:#b0a8c0;padding:4px 20px;flex-shrink:0;">
-        <button onclick="loadNotesFromFirestore()" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🔄 Load Notes</button>
-      </div>
+      <div id="notes-debug" style="display:none;"></div>
       <div id="notes-list" style="flex:1;overflow-y:auto;padding:16px 20px 100px;display:flex;flex-direction:column;gap:14px;"></div>
 
     </div>
