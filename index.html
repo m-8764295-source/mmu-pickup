@@ -539,7 +539,7 @@
       <p class="section-label">🧀 Snacks</p>
       <div class="product-grid" style="background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid rgba(232,221,208,0.6);">
         <div class="product-card" onclick="openMadDetail('Nachos','🌽','RM 9.00','Crispy tortilla chips loaded with melted cheese, jalapeños and salsa.','snack')" style="animation-delay:0.05s">
-          <div class="product-card-img" style="background:linear-gradient(135deg,#fff8e1,#ffcc80);">🌽</div>
+          <div class="product-card-img" style="background:linear-gradient(135deg,#fff8e1,#ffcc80);overflow:hidden;padding:0;"><img src="assets/loaded-nachos.png" style="width:100%;height:100%;object-fit:cover;"></div>
           <div class="product-card-body">
             <div class="product-card-name">Nachos</div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Crispy · Cheese · Jalapeños</div>
@@ -4149,14 +4149,18 @@
       'Blue Lemon Soda': 'assets/blue-lemon-soda.png',
       'Lychee Sky Soda': 'assets/lychee-sky-soda.png',
       'Ribena Laici':    'assets/ribena-laici-soda.png',
+      'Nachos':          'assets/loaded-nachos.png',
     };
+    const emojiEl = document.getElementById('detail-emoji');
     if (heroImg) {
       if (imageMap[name]) {
         heroImg.src = imageMap[name];
         heroImg.style.display = 'block';
+        if (emojiEl) emojiEl.style.display = 'none';
       } else {
         heroImg.src = '';
         heroImg.style.display = 'none';
+        if (emojiEl) emojiEl.style.display = '';
       }
     }
 
