@@ -2033,6 +2033,7 @@
     currentScreen = screen;
     if (screen === 'cart') renderCart();
     if (screen === 'checkout') renderCheckout();
+    if (screen === 'mad-checkout') { if (typeof window.renderMadCheckout === 'function') window.renderMadCheckout(); }
     if (screen === 'notes') {
       notesActiveTab = 'All';
       if (typeof loadNotesFromFirestore === 'function') loadNotesFromFirestore();
@@ -4042,7 +4043,6 @@
   window.goTo = function(screen) {
     _madBaseGoTo(screen);
     if (screen === 'mad-cart') renderMadCart();
-    if (screen === 'mad-checkout') window.renderMadCheckout();
     if (screen === 'menu-mad') updateMadCartUI();
     if (screen === 'notes') { notesActiveTab = 'All'; loadNotesFromFirestore(); }
   };
