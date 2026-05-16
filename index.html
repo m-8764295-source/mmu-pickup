@@ -1318,7 +1318,7 @@
           <input class="field-input" type="tel" placeholder="+60 12-345 6789" id="mad-field-phone">
         </div>
         <div class="field-group" id="mad-address-group" style="display:none;">
-          <label class="field-label">📍 Pre-order Address</label>
+          <label class="field-label">📍 Delivery Address</label>
           <input class="field-input" type="text" placeholder="e.g. V5 Room 203, MMU Cyberjaya" id="mad-field-address" style="margin-bottom:8px;">
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
             <button onclick="pickMadAddress('V1 Residence')" class="addr-chip">🏠 V1</button>
@@ -3848,7 +3848,7 @@
     madOrderType = type;
     const co = document.getElementById('mad-checkout-method');
     const ci = document.getElementById('mad-checkout-icon');
-    if (co) co.textContent = type === 'pickup' ? 'Pick Up' : 'Pre-order';
+    if (co) co.textContent = type === 'pickup' ? 'Pick Up' : 'Delivery';
     if (ci) ci.textContent = type === 'pickup' ? '🛍' : '🛵';
     const cashBtn = document.getElementById('mad-pay-cash-btn');
     const cashNote = document.getElementById('mad-cash-note');
@@ -3990,7 +3990,7 @@
   window.goTo = function(screen) {
     _madBaseGoTo(screen);
     if (screen === 'mad-cart') renderMadCart();
-    if (screen === 'mad-checkout') renderMadCheckout();
+    if (screen === 'mad-checkout') setTimeout(renderMadCheckout, 50);
     if (screen === 'menu-mad') updateMadCartUI();
     if (screen === 'notes') { notesActiveTab = 'All'; loadNotesFromFirestore(); }
   };
