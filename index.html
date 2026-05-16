@@ -2495,15 +2495,15 @@
       if (text)   text.textContent = '🟢 Open Now';
       if (nextEl) nextEl.style.display = 'none';
       if (badge)  { badge.style.background = 'rgba(46,125,50,0.85)'; badge.style.borderColor = 'rgba(255,255,255,0.4)'; }
-      if (card)   { card.style.cursor = 'pointer'; card.onclick = () => selectMerchant('mad'); }
     } else {
       if (img)    img.style.filter = 'brightness(0.55)';
       if (overlay) overlay.style.background = 'rgba(0,0,0,0.35)';
       if (text)   text.textContent = 'Temporarily Closed';
       if (nextEl) { nextEl.textContent = nextLabel; nextEl.style.display = nextLabel ? 'block' : 'none'; }
       if (badge)  { badge.style.background = 'rgba(255,255,255,0.15)'; badge.style.borderColor = 'rgba(255,255,255,0.3)'; }
-      if (card)   { card.style.cursor = 'default'; card.onclick = null; }
     }
+    // Always keep card clickable
+    if (card) { card.style.cursor = 'pointer'; card.onclick = () => selectMerchant('mad'); }
   }
   window.checkMadSchedule = checkMadSchedule;
   // Run on load and every minute
