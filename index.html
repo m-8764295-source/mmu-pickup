@@ -2167,10 +2167,8 @@
     notesUnsubscribe = onSnapshot(q, snap => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
         .sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0));
-      if (list) {
-        const debug = document.getElementById('notes-debug');
-        if (debug) debug.textContent = `✅ Found ${data.length} note(s)`;
-      }
+      // Clear loading state
+      if (list) list.innerHTML = '';
       const search = document.querySelector('#screen-notes input[type="text"]')?.value || '';
       applyNotesFilter(data, search);
     }, err => {
@@ -2219,7 +2217,9 @@
 
   function renderNotesCards(data) {
     const list = document.getElementById('notes-list');
-    if (!list) return;
+    const debug = document.getElementById('notes-debug');
+    if (debug) debug.innerHTML = `<span style="color:#7C6FD4;font-size:11px;">Found ${data.length} note(s)</span> <button onclick="loadNotesFromFirestore()" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:8px;">🔄 Reload</button>`;
+    if (!list) { return; }
     if (!data.length) {
       list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:40px;margin-bottom:12px;">🔍</div><div style="font-size:15px;font-weight:600;">No notes found</div><div style="font-size:12px;margin-top:4px;">Be the first to post your notes!</div></div>`;
       return;
