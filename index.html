@@ -488,7 +488,7 @@
       <p class="section-label" style="margin-top:16px;">🥤 Drinks</p>
       <div class="product-grid" style="background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);border:1px solid rgba(232,221,208,0.6);">
         <div class="product-card" onclick="openMadDetail('Ribena Laici','🍇','RM 4.00','Blackcurrant Ribena blended with lychee — sweet, fruity and refreshing.','juice')" style="animation-delay:0.05s">
-          <div class="product-card-img" style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);">🍇</div>
+          <div class="product-card-img" style="background:linear-gradient(135deg,#ede7f6,#d1c4e9);overflow:hidden;padding:0;"><img src="assets/ribena-laici-soda.png" style="width:100%;height:100%;object-fit:cover;"></div>
           <div class="product-card-body">
             <div class="product-card-name">Ribena Laici</div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Blackcurrant · Lychee</div>
@@ -512,7 +512,7 @@
         </div>
 
         <div class="product-card" onclick="openMadDetail('Blue Lemon Soda','🍋','RM 4.00','Zesty lemon soda with a beautiful blue hue — cool and tangy.','juice')" style="animation-delay:0.15s">
-          <div class="product-card-img" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);">🍋</div>
+          <div class="product-card-img" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);overflow:hidden;padding:0;"><img src="assets/blue-lemon-soda.png" style="width:100%;height:100%;object-fit:cover;"></div>
           <div class="product-card-body">
             <div class="product-card-name">Blue Lemon Soda</div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Lemon · Blue · Tangy</div>
@@ -524,7 +524,7 @@
         </div>
 
         <div class="product-card" onclick="openMadDetail('Lychee Sky Soda','🫧','RM 4.00','Light and floral lychee soda with a dreamy sky-blue finish.','juice')" style="animation-delay:0.2s">
-          <div class="product-card-img" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);">🫧</div>
+          <div class="product-card-img" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);overflow:hidden;padding:0;"><img src="assets/lychee-sky-soda.png" style="width:100%;height:100%;object-fit:cover;"></div>
           <div class="product-card-body">
             <div class="product-card-name">Lychee Sky Soda</div>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Lychee · Floral · Sky blue</div>
@@ -4144,7 +4144,12 @@
 
     // Show custom image if available
     const heroImg = document.getElementById('detail-hero-img');
-    const imageMap = { 'Zapple Soda': 'assets/zapple-soda.png' };
+    const imageMap = {
+      'Zapple Soda':     'assets/zapple-soda.png',
+      'Blue Lemon Soda': 'assets/blue-lemon-soda.png',
+      'Lychee Sky Soda': 'assets/lychee-sky-soda.png',
+      'Ribena Laici':    'assets/ribena-laici-soda.png',
+    };
     if (heroImg) {
       if (imageMap[name]) {
         heroImg.src = imageMap[name];
