@@ -2219,57 +2219,58 @@
     const list = document.getElementById('notes-list');
     const debug = document.getElementById('notes-debug');
     if (debug) debug.innerHTML = `<span style="color:#7C6FD4;font-size:11px;">Found ${data.length} note(s)</span> <button onclick="loadNotesFromFirestore()" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:8px;">🔄 Reload</button>`;
-    if (!list) { return; }
+    if (!list) return;
     if (!data.length) {
-      list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:40px;margin-bottom:12px;">🔍</div><div style="font-size:15px;font-weight:600;">No notes found</div><div style="font-size:12px;margin-top:4px;">Be the first to post your notes!</div></div>`;
+      list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:#b0a8c0;"><div style="font-size:40px;margin-bottom:12px;">🔍</div><div style="font-size:15px;font-weight:600;">No notes found</div></div>`;
       return;
     }
-    list.innerHTML = data.map(n => {
-      const status   = n.status || 'available';
-      const isMine   = currentUser && n.sellerUid === currentUser.uid;
-      const isSold   = status === 'sold';
-      const isReserved = status === 'reserved';
+    try {
+      list.innerHTML = data.map(n => {
+        const status = n.status || 'available';
+        const isMine = currentUser && n.sellerUid === currentUser.uid;
+        const isSold = status === 'sold';
+        const isReserved = status === 'reserved';
+        const statusColor = status === 'reserved' ? '#E65100' : status === 'sold' ? '#888' : '#2E7D32';
+        const statusBg = status === 'reserved' ? '#FFF3E0' : status === 'sold' ? '#F0F0F0' : '#E8F5E9';
+        const statusLabel = status === 'reserved' ? '🟠 Reserved' : status === 'sold' ? '⚫ Sold' : '🟢 Available';
 
-      let actionBtn = '';
-      if (isMine && isReserved) {
-        actionBtn = `<button onclick="markNoteSold('${n.id}')" style="background:#2E7D32;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Mark as Sold</button>`;
-      } else if (!isMine && status === 'available') {
-        actionBtn = `<button onclick="buyNote('${n.id}')" style="background:linear-gradient(135deg,#A89EE0,#7C6FD4);color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Buy</button>`;
-      }
+        let actionBtn = '';
+        if (isMine && isReserved) {
+          actionBtn = `<button onclick="markNoteSold('${n.id}')" style="background:#2E7D32;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Mark as Sold</button>`;
+        } else if (!isMine && status === 'available') {
+          actionBtn = `<button onclick="buyNote('${n.id}')" style="background:#7C6FD4;color:#fff;border:none;border-radius:100px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:sans-serif;">Buy</button>`;
+        }
 
-      return `
-      <div style="background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 3px 16px rgba(124,111,212,0.08);border:1px solid #F0EEFF;transition:transform 0.15s cubic-bezier(0.34,1.56,0.64,1);${isSold?'opacity:0.7':''}" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="" onmouseleave="this.style.transform='scale(1)'">
-        <div style="display:flex;gap:0;">
-          <div style="width:110px;min-height:130px;background:linear-gradient(145deg,#EDE9FF,#D5CEFF);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;overflow:hidden;">
-            ${n.photos && n.photos[0] ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:44px;">📚</span>`}
-            ${n.photos && n.photos.length > 1 ? `<div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.45);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:100px;">📸 ${n.photos.length}</div>` : ''}
-          </div>
-          <div style="flex:1;padding:14px 14px 10px 14px;min-width:0;">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
-              <div style="font-size:13px;font-weight:800;color:#1c1c1e;line-height:1.3;flex:1;">${n.title||'—'}</div>
-              ${notesStatusBadge(status)}
-            </div>
-            <div style="font-size:10px;color:#7C6FD4;font-weight:700;margin-bottom:4px;">${n.subject||''}</div>
-            <div style="font-size:11px;color:#9a8f85;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${n.desc||''}</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div style="width:20px;height:20px;border-radius:50%;background:#E9E4FF;display:flex;align-items:center;justify-content:center;font-size:10px;">👤</div>
-                <span style="font-size:11px;font-weight:600;color:#555;">${n.sellerName||'Anonymous'}</span>
+        const photoHtml = (n.photos && n.photos[0])
+          ? `<img src="${n.photos[0]}" style="width:100%;height:100%;object-fit:cover;">`
+          : `<span style="font-size:44px;">📚</span>`;
+
+        return `<div style="background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 3px 16px rgba(124,111,212,0.08);border:1px solid #F0EEFF;${isSold?'opacity:0.7':''}">
+          <div style="display:flex;">
+            <div style="width:110px;min-height:130px;background:linear-gradient(145deg,#EDE9FF,#D5CEFF);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">${photoHtml}</div>
+            <div style="flex:1;padding:14px;min-width:0;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;">
+                <div style="font-size:13px;font-weight:800;color:#1c1c1e;line-height:1.3;flex:1;">${n.title||'—'}</div>
+                <div style="background:${statusBg};color:${statusColor};font-size:10px;font-weight:800;padding:3px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0;">${statusLabel}</div>
               </div>
-              <div style="font-size:16px;font-weight:800;color:#7C6FD4;">RM ${parseFloat(n.price||0).toFixed(2)}</div>
+              <div style="font-size:10px;color:#7C6FD4;font-weight:700;margin-bottom:4px;">${n.subject||''}</div>
+              <div style="font-size:11px;color:#9a8f85;margin-bottom:8px;">${(n.desc||'').slice(0,80)}${(n.desc||'').length>80?'…':''}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:11px;color:#555;">👤 ${n.sellerName||'Anonymous'}</span>
+                <span style="font-size:16px;font-weight:800;color:#7C6FD4;">RM ${parseFloat(n.price||0).toFixed(2)}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div style="background:#F7F5FF;padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid #EDEAF8;">
-          ${n.location ? `<span style="font-size:11px;color:#7C6FD4;font-weight:600;">📍 ${n.location}</span>` : ''}
-          ${n.time ? `<span style="font-size:11px;color:#b0a8c0;">·</span><span style="font-size:11px;color:#7C6FD4;font-weight:600;">🕐 ${n.time}</span>` : ''}
-          <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
-            ${n.condition ? `<div style="background:#7C6FD4;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:100px;">${n.condition}</div>` : ''}
-            ${actionBtn}
+          <div style="background:#F7F5FF;padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid #EDEAF8;">
+            ${n.location ? `<span style="font-size:11px;color:#7C6FD4;font-weight:600;">📍 ${n.location}</span>` : ''}
+            ${n.time ? `<span style="font-size:11px;color:#b0a8c0;">· 🕐 ${n.time}</span>` : ''}
+            <div style="margin-left:auto;">${actionBtn}</div>
           </div>
-        </div>
-      </div>`;
-    }).join('');
+        </div>`;
+      }).join('');
+    } catch(e) {
+      list.innerHTML = `<div style="padding:20px;color:#e8654a;font-size:12px;">Render error: ${e.message}</div>`;
+    }
   }
 
   function switchNotesTab(el, tab) {
