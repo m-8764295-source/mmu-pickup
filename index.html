@@ -2176,7 +2176,7 @@
   function applyNotesFilter(data, q) {
     let filtered = data;
     if (notesActiveTab !== 'All') {
-      filtered = filtered.filter(n => (n.subject || '').toLowerCase().includes(notesActiveTab.toLowerCase()));
+      filtered = filtered.filter(n => (n.category || '').toLowerCase() === notesActiveTab.toLowerCase());
     }
     if (q) {
       const s = q.toLowerCase();
@@ -2261,6 +2261,7 @@
     const price    = document.getElementById('post-price')?.value.trim();
     const subject  = document.getElementById('post-subject')?.value.trim();
     const condition= document.getElementById('post-condition')?.value;
+    const category = document.getElementById('post-category')?.value || '';
     const desc     = document.getElementById('post-desc')?.value.trim();
     const location = document.getElementById('post-location')?.value.trim();
     const time     = document.getElementById('post-time')?.value.trim();
@@ -2273,7 +2274,7 @@
     try {
       showPostToast('⏳ Posting…', '#7C6FD4');
       await addDoc(collection(db, 'notes'), {
-        title, price: parseFloat(price), subject, condition, desc, location, time,
+        title, price: parseFloat(price), subject, condition, category, desc, location, time,
         photos,
         sellerUid:   currentUser.uid,
         sellerName:  currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
@@ -2285,6 +2286,7 @@
       // Clear form
       ['post-title','post-price','post-subject','post-desc','post-location','post-time'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       document.getElementById('post-condition').value = '';
+      document.getElementById('post-category').value = '';
       document.getElementById('notes-photos-row').innerHTML = '';
       updateAddPhotoBtn();
       setTimeout(() => goTo('notes'), 1000);
@@ -4192,6 +4194,16 @@
               <input type="text" id="post-subject" placeholder='e.g. "ACC1001 — Financial Accounting"' style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;" />
             </div>
             <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
+              <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Faculty <span style="color:#c0bbb6;font-weight:400;text-transform:none;font-size:10px;">(optional)</span></div>
+              <select id="post-category" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;-webkit-appearance:none;">
+                <option value="">Select faculty…</option>
+                <option value="IT">IT</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Business">Business</option>
+                <option value="Law">Law</option>
+              </select>
+            </div>
+            <div style="padding:14px 16px;border-bottom:1px solid #F3F0FB;">
               <div style="font-size:10px;font-weight:700;color:#A89EE0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Condition</div>
               <select id="post-condition" style="width:100%;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:#1c1c1e;background:transparent;-webkit-appearance:none;">
                 <option value="">Select condition…</option>
@@ -4276,11 +4288,10 @@
       <div style="background:#fff;padding:12px 20px 14px;flex-shrink:0;">
         <div id="notes-tabs" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
           <div onclick="switchNotesTab(this,'All')" class="notes-tab notes-tab-active" style="padding:7px 16px;border-radius:100px;background:#7C6FD4;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">All</div>
-          <div onclick="switchNotesTab(this,'Accounting')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Accounting</div>
-          <div onclick="switchNotesTab(this,'Finance')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Finance</div>
+          <div onclick="switchNotesTab(this,'IT')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">IT</div>
+          <div onclick="switchNotesTab(this,'Engineering')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Engineering</div>
           <div onclick="switchNotesTab(this,'Business')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Business</div>
           <div onclick="switchNotesTab(this,'Law')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Law</div>
-          <div onclick="switchNotesTab(this,'IT')" class="notes-tab" style="padding:7px 16px;border-radius:100px;background:#F0EEF8;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">IT</div>
         </div>
       </div>
 
