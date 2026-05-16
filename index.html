@@ -232,7 +232,7 @@
       </div>
 
       <!-- Merchant list scroll -->
-      <div style="flex:1;overflow-y:auto;padding:0 20px 40px;scrollbar-width:none;background:#ffffff;">
+      <div style="flex:1;overflow-y:auto;padding:0 20px 120px;scrollbar-width:none;background:#ffffff;">
 
         <!-- Category Icons Row -->
         <div style="display:flex;gap:0;margin:14px 0 16px;">
@@ -1863,6 +1863,8 @@
     setMenuBtn(btn);
     setMenuBtn(madBtn);
     if (landingBtn) landingBtn.innerHTML = html;
+    const exploreBtn = document.getElementById('explore-avatar-btn');
+    if (exploreBtn) exploreBtn.innerHTML = html;
   }
 
   function handleAvatarUpload(e) {
@@ -4076,7 +4078,7 @@
         <!-- Top row: logo + avatar -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0px;">
           <div><img src="./assets/logo.png" class="top-logo" style="height:34px;"></div>
-          <div onclick="goTo('profile')" style="width:44px;height:44px;border-radius:50%;background:#CBD5E0;border:2px solid var(--beige);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;box-shadow:var(--shadow-sm);">
+          <div id="explore-avatar-btn" onclick="goTo('profile')" style="width:44px;height:44px;border-radius:50%;background:#CBD5E0;border:2px solid var(--beige);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;box-shadow:var(--shadow-sm);">
             <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="10" r="5.5" fill="#94A3B8"/><path d="M3 23c0-5.523 4.477-10 10-10s10 4.477 10 10" fill="#94A3B8"/></svg>
           </div>
         </div>
