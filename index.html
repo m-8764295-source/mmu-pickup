@@ -2036,6 +2036,10 @@
   let currentOrderId = null;   // Firestore doc ID
   let unsubscribeStatus = null;
 
+  // Notes state — declared before goTo so it's accessible
+  let notesActiveTab = 'All';
+  let notesUnsubscribe = null;
+
   // ═══════════════════════════════════════════
   //  NAVIGATION
   // ═══════════════════════════════════════════
@@ -2161,8 +2165,6 @@
 
   // ── NOTES MARKETPLACE ──────────────────────────────
   const NOTES_DATA = [];
-
-  let notesUnsubscribe = null;
 
   function loadNotesFromFirestore() {
     if (notesUnsubscribe) { notesUnsubscribe(); notesUnsubscribe = null; }
