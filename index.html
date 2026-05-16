@@ -3949,6 +3949,39 @@
 
 
   // ── Checkout rendering ──
+  function getMadDeliverySlots() {
+    const now = new Date();
+    const myt = new Date(now.getTime() + (8 * 60 - now.getTimezoneOffset()) * 60000);
+    const month = myt.getUTCMonth() + 1;
+    const day   = myt.getUTCDate();
+    const hour  = myt.getUTCHours();
+    const min   = myt.getUTCMinutes();
+    const t     = hour + min / 60;
+
+    // Schedule: slots available from start+1hr to end, every hour
+    const schedule = [
+      { day: 19, start: 10, end: 13, date: 'Tue 19 May' },
+      { day: 20, start: 14, end: 17, date: 'Wed 20 May' },
+      { day: 21, start: 13, end: 15, date: 'Thu 21 May' },
+    ];
+
+    const slots = [];
+    if (month === 5) {
+      for (const s of schedule) {
+        // Generate slots: start+1hr to end, every hour
+        for (let h = s.start + 1; h <= s.end; h++) {
+          const label12 = h > 12 ? `${h-12}pm` : h === 12 ? '12pm' : `${h}am`;
+          const slotLabel = `${s.date} · ${label12}`;
+          // Only show future slots
+          if (day < s.day || (day === s.day && t < h)) {
+            slots.push(slotLabel);
+          }
+        }
+      }
+    }
+    return slots;
+  }
+
   function renderMadCheckout() {
     const summaryEl = document.getElementById('mad-checkout-summary');
     const subtotalEl = document.getElementById('mad-co2-subtotal');
@@ -3956,6 +3989,13 @@
     const delivFeeRow = document.getElementById('mad-delivery-fee-row');
     const addressGroup = document.getElementById('mad-address-group');
     if (!summaryEl) return;
+
+    // Auto-fill name
+    const nameEl = document.getElementById('mad-field-name');
+    if (nameEl && !nameEl.value && currentUser) {
+      nameEl.value = currentUser.displayName || currentUser.email?.split('@')[0] || '';
+    }
+
     summaryEl.innerHTML = madCart.map(i => `
       <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;">
         <span>${i.emoji} ${i.name} ×${i.qty}</span>
@@ -3968,14 +4008,31 @@
     if (subtotalEl) subtotalEl.textContent = 'RM ' + subtotal.toFixed(2);
     if (totalEl) totalEl.textContent = 'RM ' + total.toFixed(2);
     if (delivFeeRow) delivFeeRow.style.display = madOrderType === 'delivery' ? 'flex' : 'none';
-    if (addressGroup) addressGroup.style.display = madOrderType === 'delivery' ? 'block' : 'none';
+
+    if (addressGroup) {
+      addressGroup.style.display = madOrderType === 'delivery' ? 'block' : 'none';
+      if (madOrderType === 'delivery') {
+        // Add slot selector if not already there
+        if (!document.getElementById('mad-slot-group')) {
+          const slots = getMadDeliverySlots();
+          const slotHtml = slots.length
+            ? `<div class="field-group" id="mad-slot-group" style="margin-top:12px;">
+                <label class="field-label">🕐 Delivery Slot</label>
+                <select class="field-input" id="mad-field-slot" style="background:#fff;">
+                  <option value="">Select a time slot…</option>
+                  ${slots.map(s => `<option value="${s}">${s}</option>`).join('')}
+                </select>
+              </div>`
+            : `<div id="mad-slot-group" style="margin-top:12px;background:#FFF8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:#b97a00;">⏰ No slots available right now. Check back during opening hours.</div>`;
+          addressGroup.insertAdjacentHTML('beforeend', slotHtml);
+        }
+      }
+    }
+
     const coPayEl = document.getElementById('mad-co-pay');
     if (coPayEl) coPayEl.textContent = 'RM ' + total.toFixed(2);
-
-    // Update QR amount
     const qrAmt = document.getElementById('mad-qr-amount');
     if (qrAmt) qrAmt.textContent = 'RM ' + total.toFixed(2);
-
     const proceedBtn = document.getElementById('mad-proceed-btn');
     if (proceedBtn) proceedBtn.textContent = madPayMethod === 'tng' ? 'Proceed to Pay →' : 'Place Order →';
   }
@@ -4009,7 +4066,11 @@
   async function madProceedCheckout() {
     const name = document.getElementById('mad-field-name')?.value.trim();
     const phone = document.getElementById('mad-field-phone')?.value.trim();
-    if (!name || !phone) { alert('Please fill in your name and phone number.'); return; }
+    if (!name || !phone) { showPostToast('⚠️ Please fill in your name and phone number', '#1c1c1e'); return; }
+    if (madOrderType === 'delivery') {
+      const slot = document.getElementById('mad-field-slot')?.value;
+      if (!slot) { showPostToast('⚠️ Please select a delivery slot', '#1c1c1e'); return; }
+    }
     if (madPayMethod === 'tng') {
       renderMadCheckout();
       window.goTo('mad-payment');
@@ -4061,6 +4122,7 @@
     const customerName = document.getElementById('mad-field-name')?.value.trim() || 'Guest';
     const customerPhone = document.getElementById('mad-field-phone')?.value.trim() || '';
     const address = madOrderType === 'delivery' ? (document.getElementById('mad-field-address')?.value.trim() || '') : null;
+    const slot = madOrderType === 'delivery' ? (document.getElementById('mad-field-slot')?.value || '') : null;
     const note = document.getElementById('mad-field-note')?.value.trim() || '';
     const subtotal = madCart.reduce((s, i) => s + i.price * i.qty, 0);
     const delivFee = madOrderType === 'delivery' ? 2.00 : 0;
@@ -4072,6 +4134,7 @@
       phone:         customerPhone,
       type:          madOrderType,
       address:       address,
+      slot:          slot,
       note:          note,
       items:         madCart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
       total:         total,
