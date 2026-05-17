@@ -4130,8 +4130,18 @@
     if (!madScreenshotFile) { alert('Please upload your payment screenshot first.'); return; }
     const paidBtn = document.getElementById('mad-paid-btn');
     const waitBanner = document.getElementById('mad-waiting-banner');
-    if (paidBtn) { paidBtn.disabled = true; paidBtn.style.opacity = '0.5'; }
-    if (waitBanner) waitBanner.style.display = 'flex';
+    if (paidBtn) {
+      paidBtn.textContent = '⏳ Saving order…';
+      paidBtn.style.background = 'var(--milo)';
+      paidBtn.disabled = true;
+      paidBtn.style.opacity = '1';
+      paidBtn.style.cursor = 'not-allowed';
+    }
+    if (waitBanner) {
+      waitBanner.style.display = 'flex';
+      const wt = waitBanner.querySelector('.waiting-text');
+      if (wt) wt.textContent = 'Saving your order…';
+    }
     await madSubmitOrder('tng', 'paid');
   }
   window.madMarkPaid = madMarkPaid;
@@ -4182,7 +4192,7 @@
       deliveryFee:   delivFee,
       platformComm:  0,
       merchantNett:  subtotal,
-      riderEarning:  delivFee > 0 ? 1.50 : 0,
+      riderEarning:  delivFee > 0 ? 1.00 : 0,
       status:        'new',
       rider:         null,
       paymentMethod: paymentMethod,
@@ -4215,7 +4225,13 @@
       const waitBanner = document.getElementById('mad-waiting-banner');
       if (waitBanner) waitBanner.style.display = 'none';
       const paidBtn = document.getElementById('mad-paid-btn');
-      if (paidBtn) { paidBtn.disabled = false; paidBtn.style.opacity = '1'; }
+      if (paidBtn) {
+        paidBtn.disabled = false;
+        paidBtn.style.opacity = '1';
+        paidBtn.style.background = '';
+        paidBtn.style.cursor = 'pointer';
+        paidBtn.textContent = '✓  Confirm & Submit Order';
+      }
     }
   }
 
