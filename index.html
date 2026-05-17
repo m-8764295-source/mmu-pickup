@@ -2043,6 +2043,18 @@
       const icon   = o.type==='delivery' ? '🛵' : o.type==='preorder' ? '📋' : '🛍';
       const status = o.status==='done' ? 'Delivered' : 'Cancelled';
       const sColor = o.status==='done' ? 'background:#EDF4E6;color:var(--matcha)' : 'background:#FEE;color:#E8654A';
+      const riderRow = (o.type==='delivery' && o.rider)
+        ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--beige);">
+             <div style="display:flex;align-items:center;gap:8px;">
+               <span style="font-size:16px;">🛵</span>
+               <div>
+                 <div style="font-size:11px;color:var(--text-muted);font-weight:600;">Rider</div>
+                 <div style="font-size:13px;font-weight:700;color:var(--text-dark);">${o.rider}</div>
+               </div>
+             </div>
+             ${o.riderPhone ? `<a href="tel:${o.riderPhone}" style="background:var(--matcha);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;text-decoration:none;">📞 Call</a>` : ''}
+           </div>`
+        : '';
       return `<div class="hist-card">
         <div class="hist-card-row">
           <div class="hist-card-icon">${icon}</div>
@@ -2055,6 +2067,7 @@
             <div class="hist-card-status" style="${sColor}">${status}</div>
           </div>
         </div>
+        ${riderRow}
       </div>`;
     }).join('');
   }
@@ -3813,7 +3826,7 @@
     const { steps, statusOrder } = getOrderSteps(order);
     const curIdx = statusOrder.indexOf(order.status);
 
-    el.innerHTML = steps.map(step => {
+    const stepsHtml = steps.map(step => {
       const sIdx     = statusOrder.indexOf(step.key);
       const isDone   = sIdx < curIdx;
       const isActive = step.key === order.status;
@@ -3828,6 +3841,19 @@
         ${isActive ? '<div style="margin-left:auto;font-size:11px;color:var(--matcha);font-weight:700;">● Now</div>' : isDone ? '<div style="margin-left:auto;font-size:11px;color:var(--text-muted);">✓</div>' : ''}
       </div>`;
     }).join('');
+
+    const riderHtml = (order.status === 'delivering' && order.rider)
+      ? `<div style="display:flex;align-items:center;gap:10px;background:rgba(122,158,90,0.08);border:1.5px solid rgba(122,158,90,0.25);border-radius:12px;padding:12px 14px;margin-top:10px;">
+           <span style="font-size:22px;">🛵</span>
+           <div style="flex:1;">
+             <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Your Rider</div>
+             <div style="font-size:14px;font-weight:700;color:var(--text-dark);">${order.rider}</div>
+           </div>
+           ${order.riderPhone ? `<a href="tel:${order.riderPhone}" style="background:var(--matcha);color:#fff;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;">📞 Call</a>` : ''}
+         </div>`
+      : '';
+
+    el.innerHTML = stepsHtml + riderHtml;
   }
 
   // Unsubscribe all history listeners when leaving orders screen
