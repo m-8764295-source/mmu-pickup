@@ -3949,39 +3949,6 @@
 
 
   // ── Checkout rendering ──
-  function getMadDeliverySlots() {
-    const now = new Date();
-    const myt = new Date(now.getTime() + (8 * 60 - now.getTimezoneOffset()) * 60000);
-    const month = myt.getUTCMonth() + 1;
-    const day   = myt.getUTCDate();
-    const hour  = myt.getUTCHours();
-    const min   = myt.getUTCMinutes();
-    const t     = hour + min / 60;
-
-    // Schedule: slots available from start+1hr to end, every hour
-    const schedule = [
-      { day: 19, start: 10, end: 13, date: 'Tue 19 May' },
-      { day: 20, start: 14, end: 17, date: 'Wed 20 May' },
-      { day: 21, start: 13, end: 15, date: 'Thu 21 May' },
-    ];
-
-    const slots = [];
-    if (month === 5) {
-      for (const s of schedule) {
-        // Generate slots: start+1hr to end, every hour
-        for (let h = s.start + 1; h <= s.end; h++) {
-          const label12 = h > 12 ? `${h-12}pm` : h === 12 ? '12pm' : `${h}am`;
-          const slotLabel = `${s.date} · ${label12}`;
-          // Only show future slots
-          if (day < s.day || (day === s.day && t < h)) {
-            slots.push(slotLabel);
-          }
-        }
-      }
-    }
-    return slots;
-  }
-
   function renderMadCheckout() {
     // Sync local madCart with window._madCart (same as renderMadCart)
     if (window._madCart && window._madCart !== madCart) {
@@ -3998,8 +3965,9 @@
 
     // Auto-fill name
     const nameEl = document.getElementById('mad-field-name');
-    if (nameEl && !nameEl.value && currentUser) {
-      nameEl.value = currentUser.displayName || currentUser.email?.split('@')[0] || '';
+    const user = window._midi_user;
+    if (nameEl && !nameEl.value && user) {
+      nameEl.value = user.displayName || user.email?.split('@')[0] || '';
     }
 
     summaryEl.innerHTML = madCart.map(i => `
@@ -4018,20 +3986,19 @@
     if (addressGroup) {
       addressGroup.style.display = madOrderType === 'delivery' ? 'block' : 'none';
       if (madOrderType === 'delivery') {
-        // Remove old slot group and recreate
         const oldSlot = document.getElementById('mad-slot-group');
-        if (oldSlot) oldSlot.remove();
-        const slots = getMadDeliverySlots();
-        const slotHtml = slots.length
-          ? `<div class="field-group" id="mad-slot-group" style="margin-top:12px;">
+        if (!oldSlot) {
+          addressGroup.insertAdjacentHTML('beforeend', `
+            <div class="field-group" id="mad-slot-group" style="margin-top:12px;">
               <label class="field-label">🕐 Delivery Slot</label>
               <select class="field-input" id="mad-field-slot" style="background:#fff;">
                 <option value="">Select a time slot…</option>
-                ${slots.map(s => `<option value="${s}">${s}</option>`).join('')}
+                <option value="Tue 19 May · 11am">Tue 19 May · 11am</option>
+                <option value="Tue 19 May · 12pm">Tue 19 May · 12pm</option>
+                <option value="Tue 19 May · 1pm">Tue 19 May · 1pm</option>
               </select>
-            </div>`
-          : `<div id="mad-slot-group" style="margin-top:12px;background:#FFF8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:#b97a00;">⏰ No slots available right now.</div>`;
-        addressGroup.insertAdjacentHTML('beforeend', slotHtml);
+            </div>`);
+        }
       }
     }
 
