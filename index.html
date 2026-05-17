@@ -1949,11 +1949,18 @@
   const STEPS_DELIVERY = [
     { key:'new',        icon:'🧾', label:'Confirmed' },
     { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
-    { key:'ready',      icon:'✅', label:'Ready' },
+    { key:'ready',      icon:'⏳', label:'Waiting Rider' },
+    { key:'delivering', icon:'🛵', label:'On the Way' },
     { key:'done',       icon:'🎉', label:'Done' },
   ];
-  const STEPS_PICKUP = STEPS_DELIVERY;
-  const STATUS_ORDER  = ['new','preparing','ready','done'];
+  const STEPS_PICKUP  = [
+    { key:'new',        icon:'🧾', label:'Confirmed' },
+    { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
+    { key:'ready',      icon:'✅', label:'Ready!' },
+    { key:'done',       icon:'🎉', label:'Done' },
+  ];
+  const STEPS_PREORDER = STEPS_PICKUP;
+  const STATUS_ORDER  = ['new','preparing','ready','delivering','done'];
 
   function renderActiveOrders(orders) {
     const el = document.getElementById('profile-active-orders');
@@ -1965,7 +1972,7 @@
   }
 
   function buildTrackerCard(o) {
-    const steps     = o.type === 'pickup' ? STEPS_PICKUP : STEPS_DELIVERY;
+    const steps     = o.type === 'pickup' || o.type === 'preorder' ? STEPS_PICKUP : STEPS_DELIVERY;
     const curIdx    = STATUS_ORDER.indexOf(o.status);
     const totalSteps = steps.length;
 
@@ -1977,30 +1984,51 @@
       const sIdx   = STATUS_ORDER.indexOf(s.key);
       const isDone = sIdx < curIdx;
       const isNow  = s.key === o.status;
-      return `<div class="tracker-step">
-        <div class="tracker-dot ${isDone?'done':''} ${isNow?'active':''}">
+      const dotColor   = isDone ? '#7a9e5a' : isNow ? '#7a9e5a' : '#d1d5db';
+      const dotBg      = isDone ? '#7a9e5a' : isNow ? 'rgba(122,158,90,0.15)' : '#f3f4f6';
+      const dotBorder  = isDone ? '#7a9e5a' : isNow ? '#7a9e5a' : '#d1d5db';
+      const labelColor = isNow ? '#7a9e5a' : isDone ? '#374151' : '#9ca3af';
+      const labelWeight = isNow ? '700' : '500';
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;">
+        <div style="width:30px;height:30px;border-radius:50%;border:2px solid ${dotBorder};background:${dotBg};display:flex;align-items:center;justify-content:center;font-size:13px;color:${isDone?'#fff':dotColor};background:${isDone?'#7a9e5a':dotBg};">
           ${isDone ? '✓' : s.icon}
         </div>
-        <div class="tracker-step-label ${isNow?'active':''}">${s.label}</div>
+        <div style="font-size:9px;font-weight:${labelWeight};color:${labelColor};text-align:center;line-height:1.2;">${s.label}</div>
       </div>`;
     }).join('');
 
     const date  = o.timestamp?.toDate ? o.timestamp.toDate().toLocaleDateString('en-MY',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
     const items = (o.items||[]).map(i=>`${i.emoji} ${i.name} ×${i.qty}`).join(' · ');
 
-    return `<div class="tracker-card">
-      <div class="tracker-top">
+    const riderHtml = (o.status === 'delivering' && o.rider)
+      ? `<div style="display:flex;align-items:center;gap:10px;background:rgba(122,158,90,0.08);border:1.5px solid rgba(122,158,90,0.25);border-radius:10px;padding:10px 12px;margin-top:10px;">
+           <span style="font-size:22px;">🛵</span>
+           <div style="flex:1;">
+             <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Your Rider</div>
+             <div style="font-size:14px;font-weight:700;color:#111827;">${o.rider}</div>
+           </div>
+           ${o.riderPhone ? `<a href="tel:${o.riderPhone}" style="background:#7a9e5a;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;text-decoration:none;">📞 Call</a>` : ''}
+         </div>`
+      : '';
+
+    return `<div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
         <div>
-          <div class="tracker-code">${o.code||'Order'}</div>
-          <div class="tracker-date">${date}</div>
+          <div style="font-size:13px;font-weight:700;color:#111827;">${o.code||'Order'}</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">${date}</div>
         </div>
-        <div class="tracker-total">RM ${o.total?.toFixed(2)||'—'}</div>
+        <div style="font-size:14px;font-weight:700;color:#7a9e5a;">RM ${o.total?.toFixed(2)||'—'}</div>
       </div>
-      <div class="tracker-steps">
-        <div class="tracker-line"><div class="tracker-line-fill" style="width:${fillPct}%;"></div></div>
-        ${dotsHtml}
+      <div style="position:relative;display:flex;align-items:flex-start;gap:0;">
+        <div style="position:absolute;top:15px;left:15px;right:15px;height:2px;background:#e5e7eb;z-index:0;">
+          <div style="height:100%;width:${fillPct}%;background:#7a9e5a;transition:width 0.4s;"></div>
+        </div>
+        <div style="position:relative;z-index:1;display:flex;width:100%;justify-content:space-between;">
+          ${dotsHtml}
+        </div>
       </div>
-      <div class="tracker-items">${items}</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:10px;">${items}</div>
+      ${riderHtml}
     </div>`;
   }
 
