@@ -1248,6 +1248,18 @@
         <div id="live-status-steps"></div>
       </div>
 
+      <!-- Rider info — shown only when delivering -->
+      <div id="rider-info-box" style="display:none;align-items:center;gap:12px;background:rgba(122,158,90,0.08);border:1.5px solid rgba(122,158,90,0.25);border-radius:14px;padding:14px 16px;width:100%;box-sizing:border-box;margin-top:4px;">
+        <div style="font-size:28px;">🛵</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Your Rider</div>
+          <div id="rider-info-name" style="font-size:15px;font-weight:700;color:var(--text-dark);margin-top:2px;">—</div>
+        </div>
+        <a id="rider-info-phone" href="#" style="display:flex;align-items:center;gap:6px;background:var(--matcha);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;">
+          📞 Call
+        </a>
+      </div>
+
       <div style="display:flex;gap:10px;width:100%;margin-top:20px;animation:fadeUp 0.4s ease 0.5s both;">
         <button onclick="goTo('menu')" style="flex:1;background:var(--white);border:1.5px solid var(--beige);border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text-mid);cursor:pointer;">+ New Order</button>
         <button onclick="refreshStatus()" style="flex:1;background:var(--matcha);border:none;border-radius:var(--radius-md);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(122,158,90,0.3);">🔄 Refresh</button>
@@ -3549,6 +3561,20 @@
         </div>
       </div>`;
     }).join('');
+
+    // Show rider info when delivering
+    const riderBox = document.getElementById('rider-info-box');
+    if (riderBox) {
+      if (order.status === 'delivering' && order.rider) {
+        riderBox.style.display = 'flex';
+        document.getElementById('rider-info-name').textContent  = order.rider;
+        const phoneEl = document.getElementById('rider-info-phone');
+        phoneEl.textContent = '📞 Call';
+        phoneEl.href = order.riderPhone ? 'tel:' + order.riderPhone : '#';
+      } else {
+        riderBox.style.display = 'none';
+      }
+    }
   }
   window.refreshStatus = () => {}; // no-op, Firestore handles it
 
