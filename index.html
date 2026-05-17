@@ -4043,6 +4043,7 @@
   window.goTo = function(screen) {
     _madBaseGoTo(screen);
     if (screen === 'mad-cart') renderMadCart();
+    if (screen === 'mad-checkout') renderMadCheckout();
     if (screen === 'menu-mad') updateMadCartUI();
     if (screen === 'notes') { notesActiveTab = 'All'; loadNotesFromFirestore(); }
   };
