@@ -1454,6 +1454,14 @@
         </div>
         <div id="mad-modal-check-delivery" style="margin-left:auto;font-size:18px;display:none;">✅</div>
       </button>
+      <button class="order-modal-btn" id="mad-modal-btn-preorder" onclick="selectMadOrderType('preorder')">
+        <div class="ombi">📋</div>
+        <div class="ombt">
+          <div class="ombt-title">Pre-order</div>
+          <div class="ombt-sub">Pickup at chosen slot &amp; location</div>
+        </div>
+        <div id="mad-modal-check-preorder" style="margin-left:auto;font-size:18px;display:none;">✅</div>
+      </button>
       <button class="order-modal-confirm" onclick="confirmMadOrderType()">Confirm</button>
       <span class="cancel-link" onclick="closeMadOrderModal()">Cancel</span>
     </div>
@@ -2880,7 +2888,7 @@
     orderType = pendingOrderType;
     const co = document.getElementById('checkout-method');
     const ci = document.getElementById('checkout-icon');
-    if (co) co.textContent = orderType === 'pickup' ? 'Pick Up' : 'Pre-order';
+    if (co) co.textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
     if (ci) ci.textContent = orderType === 'pickup' ? '🛍' : '🛵';
     const ag = document.getElementById('address-group');
     if (ag) ag.style.display = orderType === 'delivery' ? 'block' : 'none';
@@ -3274,8 +3282,8 @@
     document.getElementById('co-subtotal').textContent = 'RM ' + subtotal.toFixed(2);
     document.getElementById('co-total').textContent    = 'RM ' + grandTotal.toFixed(2);
     document.getElementById('co-pay').textContent      = 'RM ' + grandTotal.toFixed(2);
-    document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Pre-order';
-    document.getElementById('checkout-icon').textContent   = orderType === 'pickup' ? '🛍' : '📋';
+    document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
+    document.getElementById('checkout-icon').textContent   = orderType === 'pickup' ? '🛍' : '🛵';
     document.getElementById('qr-amount').textContent       = 'RM ' + grandTotal.toFixed(2);
 
     // Show address field only for delivery
@@ -3829,6 +3837,8 @@
   // ═══════════════════════════════════════════
   import { getFirestore, collection, addDoc, serverTimestamp, doc, updateDoc, increment }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   // We reuse the already-initialized db from the main module via window
   // State
@@ -4054,26 +4064,71 @@
   window.madProceedCheckout = madProceedCheckout;
 
   // ── Screenshot upload ──
+  let madScreenshotFile = null; // raw File for Storage upload
+
   function handleMadScreenshotUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) { alert('File too large. Max 3 MB.'); return; }
-    const reader = new FileReader();
-    reader.onload = ev => {
+    madScreenshotFile = file;
+
+    // Show compressed preview only (no base64 stored long-term)
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const previewUrl = canvas.toDataURL('image/jpeg', 0.75);
+      URL.revokeObjectURL(url);
+
+      const fileSizeKB = Math.round(file.size / 1024);
+
+      // Show preview
       const preview = document.getElementById('mad-upload-preview');
       const placeholder = document.getElementById('mad-upload-placeholder');
-      if (preview) { preview.src = ev.target.result; preview.style.display = 'block'; }
+      if (preview) { preview.src = previewUrl; preview.style.display = 'block'; }
       if (placeholder) placeholder.style.display = 'none';
-      // Enable paid button
+      const uploadZone = document.getElementById('mad-upload-zone');
+      if (uploadZone) uploadZone.classList.add('has-image');
+
+      // Show result card
+      const resultCard  = document.getElementById('mad-ai-result');
+      const resultTitle = document.getElementById('mad-ai-result-title');
+      const resultRows  = document.getElementById('mad-ai-result-rows');
+      if (resultCard) { resultCard.style.display = 'block'; resultCard.className = 'ai-result pass'; }
+      if (resultTitle) resultTitle.textContent = '📎 Screenshot uploaded successfully';
+      if (resultRows) resultRows.innerHTML = `
+        <div class="ai-result-row">
+          <span class="label">File size</span>
+          <span class="val ok">~${fileSizeKB} KB ✓</span>
+        </div>
+        <div class="ai-result-row">
+          <span class="label">Status</span>
+          <span class="val ok">Ready to submit ✓</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">
+          Boss will verify your payment receipt manually.
+        </div>`;
+
       const paidBtn = document.getElementById('mad-paid-btn');
-      if (paidBtn) { paidBtn.disabled = false; paidBtn.style.opacity = '1'; paidBtn.style.cursor = 'pointer'; }
+      if (paidBtn) {
+        paidBtn.disabled = false;
+        paidBtn.style.opacity = '1';
+        paidBtn.style.cursor = 'pointer';
+        paidBtn.textContent = '✓  Confirm & Submit Order';
+      }
     };
-    reader.readAsDataURL(file);
+    img.src = url;
   }
   window.handleMadScreenshotUpload = handleMadScreenshotUpload;
 
   // ── Mark Paid (TNG) ──
   async function madMarkPaid() {
+    if (!madScreenshotFile) { alert('Please upload your payment screenshot first.'); return; }
     const paidBtn = document.getElementById('mad-paid-btn');
     const waitBanner = document.getElementById('mad-waiting-banner');
     if (paidBtn) { paidBtn.disabled = true; paidBtn.style.opacity = '0.5'; }
@@ -4101,6 +4156,18 @@
     const delivFee = madOrderType === 'delivery' ? 1.00 : 0;
     const total = subtotal + delivFee;
 
+    // Upload screenshot to Firebase Storage
+    let screenshotUrl = null;
+    if (madScreenshotFile) {
+      try {
+        const storage = getStorage();
+        const filename = 'mad_payments/' + Date.now() + '_' + (window._midi_user?.uid || 'guest') + '.jpg';
+        const storageRef = ref(storage, filename);
+        await uploadBytes(storageRef, madScreenshotFile);
+        screenshotUrl = await getDownloadURL(storageRef);
+      } catch(e) { console.error('Screenshot upload failed:', e); }
+    }
+
     const orderData = {
       code:          'MAD-' + String(Date.now()).slice(-4),
       name:          customerName,
@@ -4125,6 +4192,7 @@
       merchantName:  'Mad Drink Lab',
       userEmail:     window._midi_user ? window._midi_user.email : null,
       userName:      window._midi_user ? window._midi_user.displayName : null,
+      screenshotUrl: screenshotUrl,
       timestamp:     serverTimestamp(),
     };
 
@@ -4138,6 +4206,7 @@
       if (window.startStatusTracking) window.startStatusTracking(madCurrentOrderId);
       window.goTo('success');
       madCart = [];
+      madScreenshotFile = null;
       updateMadCartUI();
       const successCode = document.getElementById('success-order-code');
       if (successCode) successCode.textContent = 'Order #' + orderData.code;
@@ -4233,12 +4302,16 @@
   function updateMadModalSelection(type) {
     const btnP = document.getElementById('mad-modal-btn-pickup');
     const btnD = document.getElementById('mad-modal-btn-delivery');
+    const btnR = document.getElementById('mad-modal-btn-preorder');
     const chkP = document.getElementById('mad-modal-check-pickup');
     const chkD = document.getElementById('mad-modal-check-delivery');
+    const chkR = document.getElementById('mad-modal-check-preorder');
     if (btnP) btnP.classList.toggle('selected', type === 'pickup');
     if (btnD) btnD.classList.toggle('selected', type === 'delivery');
-    if (chkP) chkP.style.display = type === 'pickup' ? 'block' : 'none';
+    if (btnR) btnR.classList.toggle('selected', type === 'preorder');
+    if (chkP) chkP.style.display = type === 'pickup'   ? 'block' : 'none';
     if (chkD) chkD.style.display = type === 'delivery' ? 'block' : 'none';
+    if (chkR) chkR.style.display = type === 'preorder' ? 'block' : 'none';
   }
 
   function confirmMadOrderType() {
@@ -4246,11 +4319,13 @@
     madOrderType = madPendingOrderType;
     const co = document.getElementById('mad-checkout-method');
     const ci = document.getElementById('mad-checkout-icon');
-    if (co) co.textContent = madOrderType === 'pickup' ? 'Pick Up' : 'Delivery';
-    if (ci) ci.textContent = madOrderType === 'pickup' ? '🛍' : '🛵';
+    const labelMap = { pickup: 'Pick Up', delivery: 'Delivery', preorder: 'Pre-order' };
+    const iconMap  = { pickup: '🛍', delivery: '🛵', preorder: '📋' };
+    if (co) co.textContent = labelMap[madOrderType] || 'Pick Up';
+    if (ci) ci.textContent = iconMap[madOrderType]  || '🛍';
     const cashBtn = document.getElementById('mad-pay-cash-btn');
     const cashNote = document.getElementById('mad-cash-note');
-    if (madOrderType === 'delivery') {
+    if (madOrderType === 'delivery' || madOrderType === 'preorder') {
       if (cashBtn) cashBtn.style.display = 'none';
       if (cashNote) cashNote.style.display = 'none';
       madPayMethod = 'tng';
