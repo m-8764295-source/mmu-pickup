@@ -3503,26 +3503,39 @@
   }
   window.startStatusTracking = startStatusTracking;
 
+
+  function getOrderSteps(order) {
+    if (order.type === 'delivery') {
+      return {
+        steps: [
+          { key:'new',        icon:'🧾', label:'Order Confirmed', desc:'Payment received — thank you!' },
+          { key:'preparing',  icon:'👨‍🍳', label:'Preparing',       desc:'Your order is being made fresh' },
+          { key:'ready',      icon:'⏳', label:'Waiting for Rider',desc:'Order ready — assigning rider now' },
+          { key:'delivering', icon:'🛵', label:'On the Way!',      desc:'Rider is heading to you now 🚀' },
+          { key:'done',       icon:'🎉', label:'Delivered!',       desc:'Enjoy your order! 🍵' },
+        ],
+        statusOrder: ['new','preparing','ready','delivering','done'],
+      };
+    } else {
+      return {
+        steps: [
+          { key:'new',       icon:'🧾', label:'Order Confirmed', desc:'Payment received — thank you!' },
+          { key:'preparing', icon:'👨‍🍳', label:'Preparing',       desc:'Your order is being made fresh' },
+          { key:'ready',     icon:'✅', label:'Ready!',           desc:'Please come collect at counter 😊' },
+          { key:'done',      icon:'🎉', label:'Done!',            desc:'Enjoy your order from MIDI! 🍵' },
+        ],
+        statusOrder: ['new','preparing','ready','done'],
+      };
+    }
+  }
+
   function renderLiveStatus(order) {
-    const isDelivery = order.type === 'delivery';
-    const allSteps = isDelivery ? [
-      { key: 'new',        icon: '🧾', label: 'Order Confirmed',  desc: 'Payment received — thank you!' },
-      { key: 'preparing',  icon: '👨‍🍳', label: 'Preparing',        desc: 'Your order is being made fresh' },
-      { key: 'delivering', icon: '🛵', label: 'On the Way!',       desc: 'Rider is heading to you now 🚀' },
-      { key: 'done',       icon: '🎉', label: 'Delivered!',        desc: 'Enjoy your order from MIDI! 🍵' },
-    ] : [
-      { key: 'new',        icon: '🧾', label: 'Order Confirmed',  desc: 'Payment received — thank you!' },
-      { key: 'preparing',  icon: '👨‍🍳', label: 'Preparing',        desc: 'Your order is being made fresh' },
-      { key: 'ready',      icon: '✅', label: 'Ready!',            desc: 'Please come collect at counter 😊' },
-      { key: 'done',       icon: '🎉', label: 'Done!',             desc: 'Enjoy your order from MIDI! 🍵' },
-    ];
-    const steps = allSteps;
-    const statusOrder = isDelivery ? ['new','preparing','delivering','done'] : ['new','preparing','ready','done'];
+    const { steps, statusOrder } = getOrderSteps(order);
     const curIdx = statusOrder.indexOf(order.status);
 
     document.getElementById('live-status-steps').innerHTML = steps.map(step => {
-      const sIdx    = statusOrder.indexOf(step.key);
-      const isDone  = sIdx < curIdx;
+      const sIdx     = statusOrder.indexOf(step.key);
+      const isDone   = sIdx < curIdx;
       const isActive = step.key === order.status;
       const isPending = sIdx > curIdx;
       return `<div class="status-step">
@@ -3734,24 +3747,11 @@
   function renderHistSteps(id, order) {
     const el = document.getElementById('hist-steps-' + id);
     if (!el) return;
-    const isDelivery = order.type === 'delivery';
-    const allSteps = isDelivery ? [
-      { key:'new',        icon:'🧾', label:'Order Confirmed' },
-      { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
-      { key:'delivering', icon:'🛵', label:'On the Way!' },
-      { key:'done',       icon:'🎉', label:'Delivered!' },
-    ] : [
-      { key:'new',        icon:'🧾', label:'Order Confirmed' },
-      { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
-      { key:'ready',      icon:'✅', label:'Ready!' },
-      { key:'done',       icon:'🎉', label:'Done!' },
-    ];
-    const steps = allSteps;
-    const statusOrder = isDelivery ? ['new','preparing','delivering','done'] : ['new','preparing','ready','done'];
+    const { steps, statusOrder } = getOrderSteps(order);
     const curIdx = statusOrder.indexOf(order.status);
 
     el.innerHTML = steps.map(step => {
-      const sIdx = statusOrder.indexOf(step.key);
+      const sIdx     = statusOrder.indexOf(step.key);
       const isDone   = sIdx < curIdx;
       const isActive = step.key === order.status;
       const isPending = sIdx > curIdx;
