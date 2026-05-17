@@ -3983,6 +3983,12 @@
   }
 
   function renderMadCheckout() {
+    // Sync local madCart with window._madCart (same as renderMadCart)
+    if (window._madCart && window._madCart !== madCart) {
+      madCart.length = 0;
+      window._madCart.forEach(i => madCart.push(i));
+      window._madCart = madCart;
+    }
     const summaryEl = document.getElementById('mad-checkout-summary');
     const subtotalEl = document.getElementById('mad-co2-subtotal');
     const totalEl = document.getElementById('mad-co2-total');
