@@ -3597,7 +3597,6 @@
         riderBox.style.display = 'flex';
         document.getElementById('rider-info-name').textContent  = order.rider;
         const phoneEl = document.getElementById('rider-info-phone');
-        phoneEl.textContent = '📞 Call';
         phoneEl.href = order.riderPhone ? 'tel:' + order.riderPhone : '#';
       } else {
         riderBox.style.display = 'none';
