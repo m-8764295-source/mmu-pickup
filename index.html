@@ -2000,7 +2000,7 @@
     }
     el.innerHTML = orders.map(o => {
       const date   = o.timestamp?.toDate ? o.timestamp.toDate().toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'}) : '—';
-      const icon   = o.type==='delivery' ? '📋' : '🛍';
+      const icon   = o.type==='delivery' ? '🛵' : o.type==='preorder' ? '📋' : '🛍';
       const status = o.status==='done' ? 'Delivered' : 'Cancelled';
       const sColor = o.status==='done' ? 'background:#EDF4E6;color:var(--matcha)' : 'background:#FEE;color:#E8654A';
       return `<div class="hist-card">
@@ -3691,18 +3691,28 @@
 
     const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way!', done:'Done' };
     const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
-    const typeIcon = order.type === 'delivery' ? '📋' : '🛍';
+    const typeIcon = order.type === 'delivery' ? '🛵' : order.type === 'preorder' ? '📋' : '🛍';
+    const typeLabel = order.type === 'delivery' ? 'Delivery' : order.type === 'preorder' ? 'Pre-order' : 'Pick Up';
     const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('en-MY', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
 
     const itemsHtml = (order.items || []).map(i =>
       `<div class="order-hist-item"><span>${i.emoji} ${i.name} ×${i.qty}</span><span>RM ${(i.price * i.qty).toFixed(2)}</span></div>`
     ).join('');
 
+    // Build address/slot info block
+    let infoHtml = '';
+    if (order.type === 'preorder' && order.slot) {
+      infoHtml = `<div style="font-size:13px;color:var(--text-mid);padding:6px 0 4px;border-top:1px solid var(--beige);margin-top:4px;">📅 Slot: <strong>${order.slot}</strong></div>`;
+    } else if (order.type === 'delivery') {
+      if (order.address) infoHtml += `<div style="font-size:13px;color:var(--text-mid);padding:6px 0 2px;border-top:1px solid var(--beige);margin-top:4px;">📍 Address: <strong>${order.address}</strong></div>`;
+      if (order.deliverySlot || order.slot) infoHtml += `<div style="font-size:13px;color:var(--text-mid);padding:2px 0 4px;">📅 Slot: <strong>${order.deliverySlot || order.slot}</strong></div>`;
+    }
+
     card.innerHTML = `
       <div class="order-hist-header" onclick="toggleHistCard('${id}')">
         <div class="order-hist-icon">${typeIcon}</div>
         <div class="order-hist-info">
-          <div class="order-hist-code">${order.code || 'Order'}</div>
+          <div class="order-hist-code">${order.code || 'Order'} <span style="font-size:10px;font-weight:500;color:var(--text-muted);">${typeLabel}</span></div>
           <div class="order-hist-meta">${date} · RM ${order.total?.toFixed(2) || '—'}</div>
         </div>
         <div class="order-hist-status ${statusClass[order.status] || 'status-new'}" id="hist-status-badge-${id}">
@@ -3711,7 +3721,7 @@
       </div>
       <div class="order-hist-body" id="hist-body-${id}">
         <div class="order-hist-items">${itemsHtml}</div>
-        ${order.address ? `<div style="font-size:13px;color:var(--text-mid);padding:6px 0 4px;border-top:1px solid var(--beige);margin-top:4px;">📅 Slot: <strong>${order.address}</strong></div>` : ''}
+        ${infoHtml}
         <div class="order-hist-total"><span>Total Paid</span><span>RM ${order.total?.toFixed(2) || '—'}</span></div>
         <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Live Status</div>
         <div class="order-hist-steps" id="hist-steps-${id}"></div>
