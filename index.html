@@ -1331,7 +1331,7 @@
         <div id="mad-checkout-summary"></div>
         <div class="divider-line"></div>
         <div class="summary-row"><span>Subtotal</span><span id="mad-co2-subtotal">RM 0.00</span></div>
-        <div class="summary-row" id="mad-delivery-fee-row" style="display:none;"><span>Delivery Fee</span><span>RM 2.00</span></div>
+        <div class="summary-row" id="mad-delivery-fee-row" style="display:none;"><span>Delivery Fee</span><span>RM 1.00</span></div>
         <div class="summary-row total"><span>Total</span><span id="mad-co2-total">RM 0.00</span></div>
       </div>
 
@@ -1450,7 +1450,7 @@
         <div class="ombi">🛵</div>
         <div class="ombt">
           <div class="ombt-title">Delivery</div>
-          <div class="ombt-sub">Delivered to your location (+RM 2.00)</div>
+          <div class="ombt-sub">Delivered to your location (+RM 1.00)</div>
         </div>
         <div id="mad-modal-check-delivery" style="margin-left:auto;font-size:18px;display:none;">✅</div>
       </button>
@@ -3927,13 +3927,13 @@
       });
       cartHtml += `<div class="order-summary-card">
         <div class="summary-row"><span>Subtotal</span><span>RM ${total.toFixed(2)}</span></div>
-        <div class="summary-row" style="${madOrderType==='delivery'?'':'display:none'}"><span>Delivery Fee</span><span>RM 2.00</span></div>
-        <div class="summary-row total"><span>Total</span><span>RM ${(total+(madOrderType==='delivery'?2:0)).toFixed(2)}</span></div>
+        <div class="summary-row" style="${madOrderType==='delivery'?'':'display:none'}"><span>Delivery Fee</span><span>RM 1.00</span></div>
+        <div class="summary-row total"><span>Total</span><span>RM ${(total+(madOrderType==='delivery'?1:0)).toFixed(2)}</span></div>
       </div>`;
     }
     list.innerHTML = cartHtml;
     const bar = document.getElementById('mad-cart-total-bar');
-    if (bar) bar.textContent = 'RM ' + (total+(madOrderType==='delivery'?2:0)).toFixed(2);
+    if (bar) bar.textContent = 'RM ' + (total+(madOrderType==='delivery'?1:0)).toFixed(2);
   }
   window.renderMadCart = renderMadCart;
 
@@ -3977,7 +3977,7 @@
       </div>`).join('');
 
     const subtotal = madCart.reduce((s, i) => s + i.price * i.qty, 0);
-    const delivFee = madOrderType === 'delivery' ? 2.00 : 0;
+    const delivFee = madOrderType === 'delivery' ? 1.00 : 0;
     const total = subtotal + delivFee;
     if (subtotalEl) subtotalEl.textContent = 'RM ' + subtotal.toFixed(2);
     if (totalEl) totalEl.textContent = 'RM ' + total.toFixed(2);
@@ -4098,7 +4098,7 @@
     const slot = madOrderType === 'delivery' ? (document.getElementById('mad-field-slot')?.value || '') : null;
     const note = document.getElementById('mad-field-note')?.value.trim() || '';
     const subtotal = madCart.reduce((s, i) => s + i.price * i.qty, 0);
-    const delivFee = madOrderType === 'delivery' ? 2.00 : 0;
+    const delivFee = madOrderType === 'delivery' ? 1.00 : 0;
     const total = subtotal + delivFee;
 
     const orderData = {
