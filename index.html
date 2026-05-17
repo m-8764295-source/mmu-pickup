@@ -1065,8 +1065,8 @@
           <input class="field-input" type="tel" placeholder="+60 12-345 6789" id="field-phone">
         </div>
 
-        <!-- Pickup info — shown for pre-order -->
-        <div class="field-group" id="address-group" style="display:none;">
+        <!-- Pre-order: slot picker -->
+        <div class="field-group" id="preorder-group" style="display:none;">
           <label class="field-label">📍 Pickup Location</label>
           <div style="background:var(--cream);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-dark);margin-bottom:14px;">
             🏪 Plaza Siswa, MMU Melaka
@@ -1078,7 +1078,28 @@
             <button onclick="pickSlot(this,'22 May · 11am – 12pm')" class="slot-chip">📅 22 May &nbsp;·&nbsp; 11am – 12pm</button>
             <button onclick="pickSlot(this,'22 May · 12pm – 1pm')" class="slot-chip">📅 22 May &nbsp;·&nbsp; 12pm – 1pm</button>
           </div>
-          <input type="hidden" id="field-address" value="">
+          <input type="hidden" id="field-slot" value="">
+        </div>
+
+        <!-- Delivery: address + slot -->
+        <div class="field-group" id="delivery-group" style="display:none;">
+          <label class="field-label">📍 Delivery Address</label>
+          <input class="field-input" type="text" placeholder="e.g. V5 Room 203, MMU Melaka" id="field-address" style="margin-bottom:8px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+            <button onclick="pickAddress('V1 Residence')" class="addr-chip">🏠 V1</button>
+            <button onclick="pickAddress('V5 Residence')" class="addr-chip">🏠 V5</button>
+            <button onclick="pickAddress('DPP Melaka')" class="addr-chip">🏠 DPP</button>
+            <button onclick="pickAddress('MMU Library')" class="addr-chip">📚 Library</button>
+            <button onclick="pickAddress('Block A')" class="addr-chip">🏢 Block A</button>
+          </div>
+          <label class="field-label">⏰ Delivery Slot</label>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button onclick="pickSlot(this,'21 May · 2pm – 3pm')"  class="slot-chip">📅 21 May &nbsp;·&nbsp; 2pm – 3pm</button>
+            <button onclick="pickSlot(this,'21 May · 3pm – 4pm')"  class="slot-chip">📅 21 May &nbsp;·&nbsp; 3pm – 4pm</button>
+            <button onclick="pickSlot(this,'22 May · 11am – 12pm')" class="slot-chip">📅 22 May &nbsp;·&nbsp; 11am – 12pm</button>
+            <button onclick="pickSlot(this,'22 May · 12pm – 1pm')" class="slot-chip">📅 22 May &nbsp;·&nbsp; 12pm – 1pm</button>
+          </div>
+          <input type="hidden" id="field-delivery-slot" value="">
         </div>
       </div>
 
@@ -1099,13 +1120,21 @@
       <div class="section-card">
         <div class="section-card-title">Payment Method</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <!-- TNG -->
           <div id="pay-tng-btn" onclick="selectPayMethod('tng')"
             style="border:2px solid var(--matcha);border-radius:var(--radius-md);padding:13px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:var(--matcha-pale);transition:all .15s;">
             <div style="font-size:24px;">💳</div>
             <div style="font-size:12px;font-weight:700;color:var(--text-dark);text-align:center;">Touch 'n Go</div>
             <div style="font-size:10px;color:var(--text-muted);text-align:center;">eWallet / QR</div>
           </div>
+          <div id="pay-cash-btn" onclick="selectPayMethod('cash')"
+            style="border:2px solid var(--beige);border-radius:var(--radius-md);padding:13px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:var(--white);transition:all .15s;">
+            <div style="font-size:24px;">💵</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text-dark);text-align:center;">Cash</div>
+            <div style="font-size:10px;color:var(--text-muted);text-align:center;">Pick Up only</div>
+          </div>
+        </div>
+        <div id="cash-note" style="display:none;margin-top:8px;background:#FFF8EE;border-radius:10px;padding:10px 12px;font-size:12px;color:var(--milo);">
+          💵 Pay cash when you collect at the stall. No upload needed.
         </div>
       </div>
     </div>
@@ -1454,14 +1483,6 @@
         </div>
         <div id="mad-modal-check-delivery" style="margin-left:auto;font-size:18px;display:none;">✅</div>
       </button>
-      <button class="order-modal-btn" id="mad-modal-btn-preorder" onclick="selectMadOrderType('preorder')">
-        <div class="ombi">📋</div>
-        <div class="ombt">
-          <div class="ombt-title">Pre-order</div>
-          <div class="ombt-sub">Pickup at chosen slot &amp; location</div>
-        </div>
-        <div id="mad-modal-check-preorder" style="margin-left:auto;font-size:18px;display:none;">✅</div>
-      </button>
       <button class="order-modal-confirm" onclick="confirmMadOrderType()">Confirm</button>
       <span class="cancel-link" onclick="closeMadOrderModal()">Cancel</span>
     </div>
@@ -1482,7 +1503,7 @@
         <div id="modal-check-pickup" style="margin-left:auto;font-size:18px;display:none;">✅</div>
       </button>
 
-      <button class="order-modal-btn" id="modal-btn-delivery" onclick="selectOrderType('delivery')">
+      <button class="order-modal-btn" id="modal-btn-delivery" onclick="selectOrderType('preorder')">
         <div class="ombi">📋</div>
         <div class="ombt">
           <div class="ombt-title">Pre-order</div>
@@ -2639,17 +2660,26 @@
       return;
     }
 
-    // Validate address for delivery
-    if (orderType === 'delivery' && !address) {
-      const af = document.getElementById('field-address');
-      af.style.borderColor = '#E8654A';
-      af.style.display='none'; alert('⚠️ Please select a pickup slot!');
-      af.focus();
-      setTimeout(() => { af.style.borderColor = ''; af.placeholder = 'e.g. V5 Room 203, MMU Cyberjaya'; }, 3000);
-      return;
+    // Validate slot for preorder
+    if (orderType === 'preorder') {
+      const slot = document.getElementById('field-slot')?.value;
+      if (!slot) { alert('⚠️ Please select a pickup slot!'); return; }
     }
 
-    // Cash + pickup → skip payment screen, go straight to confirm
+    // Validate address + slot for delivery
+    if (orderType === 'delivery') {
+      const addr = document.getElementById('field-address')?.value.trim();
+      const slot = document.getElementById('field-delivery-slot')?.value;
+      if (!addr) {
+        const af = document.getElementById('field-address');
+        af.style.borderColor = '#E8654A'; af.placeholder = '⚠️ Please enter your address!'; af.focus();
+        setTimeout(() => { af.style.borderColor = ''; af.placeholder = 'e.g. V5 Room 203, MMU Melaka'; }, 3000);
+        return;
+      }
+      if (!slot) { alert('⚠️ Please select a delivery slot!'); return; }
+    }
+
+    // Cash + pickup → skip payment screen
     if (payMethod === 'cash' && orderType === 'pickup') {
       submitCashOrder();
     } else {
@@ -2667,7 +2697,7 @@
     btn.disabled = true;
 
     const subtotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const discount    = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const discount    = (orderType === 'preorder' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
     const grandTotal  = +(subtotal - discount).toFixed(2);
     const customerName  = document.getElementById('field-name').value.trim();
     const customerPhone = document.getElementById('field-phone').value.trim();
@@ -2679,6 +2709,7 @@
       phone:         customerPhone,
       type:          orderType,
       address:       null,
+      slot:          null,
       items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
       total:         grandTotal,
       foodTotal:     foodTotalC,
@@ -2725,28 +2756,7 @@
 
   function goToMenu(type) {
     orderType = type;
-    const co = document.getElementById('checkout-method');
-    const ci = document.getElementById('checkout-icon');
-    if (co) co.textContent = type === 'pickup' ? 'Pick Up' : 'Pre-order';
-    if (ci) ci.textContent = type === 'pickup' ? '🛍' : '🛵';
-
-    // Delivery → hide Cash button, reset to TNG
-    const cashBtn  = document.getElementById('pay-cash-btn');
-    const cashNote = document.getElementById('cash-note');
-    const tngBtn   = document.getElementById('pay-tng-btn');
-    if (type === 'delivery') {
-      // Pre-order: show Cash button (not hidden)
-      if (cashBtn)  cashBtn.style.display  = 'flex';
-      if (cashNote) cashNote.style.display = 'none';
-      payMethod = 'tng';
-      if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
-      const pb = document.getElementById('checkout-proceed-btn');
-      if (pb) pb.textContent = 'Proceed to Pay →';
-    } else {
-      // Pickup → show Cash button
-      if (cashBtn) cashBtn.style.display = 'flex';
-    }
-
+    applyOyaOrderTypeUI();
     goTo('menu');
   }
   window.goToMenu = goToMenu;
@@ -2800,20 +2810,8 @@
   function oyaPreorder(e) {
     if (e && e.stopPropagation) e.stopPropagation();
     activeMerchant = 'oya';
-    // Set delivery mode
-    orderType = 'delivery';
-    var co = document.getElementById('checkout-method');
-    var ci = document.getElementById('checkout-icon');
-    if (co) co.textContent = 'Pre-order';
-    if (ci) ci.textContent = '🛵';
-    var cashBtn  = document.getElementById('pay-cash-btn');
-    var cashNote = document.getElementById('cash-note');
-    var tngBtn   = document.getElementById('pay-tng-btn');
-    if (cashBtn)  cashBtn.style.display  = 'flex';
-    if (cashNote) cashNote.style.display = 'none';
-    payMethod = 'tng';
-    if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
-    // Jump straight to menu
+    orderType = 'preorder';
+    applyOyaOrderTypeUI();
     activateScreen('screen-menu');
     checkPreorderDiscount();
   }
@@ -2877,41 +2875,49 @@
     const btnD = document.getElementById('modal-btn-delivery');
     const chkP = document.getElementById('modal-check-pickup');
     const chkD = document.getElementById('modal-check-delivery');
-    btnP.classList.toggle('selected', type === 'pickup');
-    btnD.classList.toggle('selected', type === 'delivery');
-    chkP.style.display = type === 'pickup'   ? 'block' : 'none';
-    chkD.style.display = type === 'delivery' ? 'block' : 'none';
+    if (btnP) btnP.classList.toggle('selected', type === 'pickup');
+    if (btnD) btnD.classList.toggle('selected', type === 'preorder');
+    if (chkP) chkP.style.display = type === 'pickup'   ? 'block' : 'none';
+    if (chkD) chkD.style.display = type === 'preorder' ? 'block' : 'none';
   }
 
   function confirmOrderType() {
     if (!pendingOrderType) return;
     orderType = pendingOrderType;
-    const co = document.getElementById('checkout-method');
-    const ci = document.getElementById('checkout-icon');
-    if (co) co.textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
-    if (ci) ci.textContent = orderType === 'pickup' ? '🛍' : '🛵';
-    const ag = document.getElementById('address-group');
-    if (ag) ag.style.display = orderType === 'delivery' ? 'block' : 'none';
-
-    // Show/hide Cash option
-    const cashBtn  = document.getElementById('pay-cash-btn');
-    const cashNote = document.getElementById('cash-note');
-    const tngBtn   = document.getElementById('pay-tng-btn');
-    if (orderType === 'delivery') {
-      if (cashBtn)  cashBtn.style.display  = 'none';
-      if (cashNote) cashNote.style.display = 'none';
-      payMethod = 'tng';
-      if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
-      if (cashBtn) { cashBtn.style.borderColor = 'var(--beige)'; cashBtn.style.background = 'var(--white)'; }
-      const pb = document.getElementById('checkout-proceed-btn');
-      if (pb) pb.textContent = 'Proceed to Pay →';
-    } else {
-      if (cashBtn) cashBtn.style.display = 'flex';
-    }
-
+    applyOyaOrderTypeUI();
     renderCheckout();
     document.getElementById('order-type-modal').style.display = 'none';
     pendingOrderType = null;
+  }
+
+  function applyOyaOrderTypeUI() {
+    const co       = document.getElementById('checkout-method');
+    const ci       = document.getElementById('checkout-icon');
+    const cashBtn  = document.getElementById('pay-cash-btn');
+    const cashNote = document.getElementById('cash-note');
+    const tngBtn   = document.getElementById('pay-tng-btn');
+    const pgPre    = document.getElementById('preorder-group');
+    const pgDel    = document.getElementById('delivery-group');
+
+    const labels = { pickup:'Pick Up', preorder:'Pre-order', delivery:'Delivery' };
+    const icons  = { pickup:'🛍', preorder:'📋', delivery:'🛵' };
+    if (co) co.textContent = labels[orderType] || 'Pick Up';
+    if (ci) ci.textContent = icons[orderType]  || '🛍';
+
+    // Show/hide field groups
+    if (pgPre) pgPre.style.display = orderType === 'preorder'  ? 'block' : 'none';
+    if (pgDel) pgDel.style.display = orderType === 'delivery'  ? 'block' : 'none';
+
+    // Payment: Cash only for pickup
+    if (orderType === 'pickup') {
+      if (cashBtn) { cashBtn.style.display = 'flex'; cashBtn.style.borderColor = 'var(--beige)'; cashBtn.style.background = 'var(--white)'; }
+    } else {
+      // preorder / delivery → TNG only
+      if (cashBtn) cashBtn.style.display = 'none';
+      if (cashNote) cashNote.style.display = 'none';
+      payMethod = 'tng';
+      if (tngBtn) { tngBtn.style.borderColor = 'var(--matcha)'; tngBtn.style.background = 'var(--matcha-pale)'; }
+    }
   }
   window.confirmOrderType = confirmOrderType;
 
@@ -3249,7 +3255,7 @@
           </div>
         </div>`;
       });
-      const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
+      const discount = (orderType === 'preorder' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
       const finalTotal = +(total - discount).toFixed(2);
       html += `<div class="order-summary-card">
         <div class="summary-row"><span>Subtotal</span><span>RM ${total.toFixed(2)}</span></div>
@@ -3258,7 +3264,7 @@
       </div>`;
     }
     list.innerHTML = html;
-    const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
+    const discount = (orderType === 'preorder' && preorderDiscountEligible) ? +(total * 0.10).toFixed(2) : 0;
     document.getElementById('cart-total-bar').textContent = 'RM ' + (total - discount).toFixed(2);
   }
 
@@ -3274,7 +3280,7 @@
   // ═══════════════════════════════════════════
   function renderCheckout() {
     const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const discount = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const discount = (orderType === 'preorder' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
     const grandTotal = +(subtotal - discount).toFixed(2);
     document.getElementById('checkout-summary').innerHTML = cart.map(item =>
       `<div class="summary-row"><span>${item.name} ×${item.qty}</span><span>RM ${(item.price*item.qty).toFixed(2)}</span></div>`
@@ -3282,16 +3288,26 @@
     document.getElementById('co-subtotal').textContent = 'RM ' + subtotal.toFixed(2);
     document.getElementById('co-total').textContent    = 'RM ' + grandTotal.toFixed(2);
     document.getElementById('co-pay').textContent      = 'RM ' + grandTotal.toFixed(2);
-    document.getElementById('checkout-method').textContent = orderType === 'pickup' ? 'Pick Up' : 'Delivery';
-    document.getElementById('checkout-icon').textContent   = orderType === 'pickup' ? '🛍' : '🛵';
+    const _labels = { pickup:'Pick Up', preorder:'Pre-order', delivery:'Delivery' };
+    const _icons  = { pickup:'🛍', preorder:'📋', delivery:'🛵' };
+    document.getElementById('checkout-method').textContent = _labels[orderType] || 'Pick Up';
+    document.getElementById('checkout-icon').textContent   = _icons[orderType]  || '🛍';
     document.getElementById('qr-amount').textContent       = 'RM ' + grandTotal.toFixed(2);
 
     // Show address field only for delivery
-    document.getElementById('address-group').style.display = orderType === 'delivery' ? 'block' : 'none';
+    if(document.getElementById('preorder-group')) document.getElementById('preorder-group').style.display = orderType === 'preorder' ? 'block' : 'none';
+    if(document.getElementById('delivery-group')) document.getElementById('delivery-group').style.display = orderType === 'delivery' ? 'block' : 'none';
   }
 
   function pickSlot(btn, slot) {
-    document.getElementById('field-address').value = slot;
+    // Write to whichever hidden slot field is visible
+    const slotField = document.getElementById('field-delivery-slot') || document.getElementById('field-slot');
+    if (slotField) slotField.value = slot;
+    // Also write to field-slot and field-delivery-slot (both may exist)
+    const fs = document.getElementById('field-slot');
+    const fd = document.getElementById('field-delivery-slot');
+    if (fs) fs.value = slot;
+    if (fd) fd.value = slot;
     document.querySelectorAll('.slot-chip').forEach(b => {
       b.style.background = 'var(--cream)';
       b.style.color = 'var(--text-dark)';
@@ -3313,35 +3329,15 @@
   // ═══════════════════════════════════════════
   //  SCREENSHOT UPLOAD + AI VERIFICATION
   // ═══════════════════════════════════════════
-  let screenshotBase64 = null;
+  let screenshotFile   = null; // raw File for Storage upload
   let paymentVerified  = false;
 
   function handleScreenshotUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
+    screenshotFile = file;
 
-    // ── File size check BEFORE anything else ──
-    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
-    const MAX_MB = 3;
-
-    if (file.size > MAX_MB * 1024 * 1024) {
-      document.getElementById('ai-result').style.display = 'block';
-      document.getElementById('ai-result').className = 'ai-result fail';
-      resultTitle.textContent = '❌ File too large (' + sizeMB + ' MB)';
-      resultRows.innerHTML = `
-        <div style="font-size:13px;color:var(--text-muted);padding:4px 0;line-height:1.8;">
-          ⚠️ Maximum allowed size is <b style="color:#E8654A;">3 MB</b><br>
-          Your file is <b style="color:#E8654A;">${sizeMB} MB</b><br><br>
-          <b>How to reduce size:</b><br>
-          📱 <b>iPhone:</b> Screenshot → share → save as smaller size<br>
-          📱 <b>Android:</b> Gallery → edit → resize to 50%<br>
-          💡 <b>Tip:</b> Take a fresh screenshot of TNG receipt — usually under 2 MB
-        </div>`;
-      event.target.value = '';
-      return;
-    }
-
-    // Resize & compress image → max 800px, 75% quality
+    // Preview only — compress for display
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
@@ -3352,20 +3348,18 @@
       if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-      screenshotBase64 = dataUrl.split(',')[1];
+      const previewUrl = canvas.toDataURL('image/jpeg', 0.75);
       URL.revokeObjectURL(url);
 
-      const compressedKB = Math.round(dataUrl.length * 0.75 / 1024);
+      const fileSizeKB = Math.round(file.size / 1024);
 
       // Show preview
       const preview = document.getElementById('upload-preview');
-      preview.src = dataUrl;
+      preview.src = previewUrl;
       preview.style.display = 'block';
       document.getElementById('upload-placeholder').style.display = 'none';
       document.getElementById('upload-zone').classList.add('has-image');
 
-      // ── No AI — unlock submit immediately ──
       const resultCard  = document.getElementById('ai-result');
       const resultTitle = document.getElementById('ai-result-title');
       const resultRows  = document.getElementById('ai-result-rows');
@@ -3377,7 +3371,7 @@
       resultRows.innerHTML = `
         <div class="ai-result-row">
           <span class="label">File size</span>
-          <span class="val ok">~${compressedKB} KB ✓</span>
+          <span class="val ok">~${fileSizeKB} KB ✓</span>
         </div>
         <div class="ai-result-row">
           <span class="label">Status</span>
@@ -3402,7 +3396,7 @@
   //  PAYMENT → FIRESTORE (no Storage needed)
   // ═══════════════════════════════════════════
   async function markPaid() {
-    if (!screenshotBase64 || !paymentVerified) return;
+    if (!screenshotFile || !paymentVerified) return;
 
     const btn = document.getElementById('paid-btn');
     btn.textContent = '⏳ Saving order…';
@@ -3412,41 +3406,22 @@
     document.querySelector('.waiting-text').textContent = 'Saving your order…';
 
     const subtotal    = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const discount    = (orderType === 'delivery' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
+    const discount    = (orderType === 'preorder' && preorderDiscountEligible) ? +(subtotal * 0.10).toFixed(2) : 0;
     const grandTotal  = +(subtotal - discount).toFixed(2);
-    const customerName    = document.getElementById('field-name').value.trim()  || 'Customer';
-    const customerPhone   = document.getElementById('field-phone').value.trim() || '-';
-    const customerAddress = orderType === 'delivery'
-      ? (document.getElementById('field-address').value.trim() || 'MMU Campus') : null;
-
-    if (orderType === 'delivery' && !document.getElementById('field-address').value.trim()) {
-      btn.textContent = '✓  Confirm & Submit Order';
-      btn.style.background = '';
-      btn.disabled = false;
-      document.getElementById('waiting-banner').style.display = 'none';
-      const af = document.getElementById('field-address');
-      af.style.borderColor = '#E8654A';
-      af.placeholder = '⚠️ Please enter your pre-order address!';
-      af.focus();
-      setTimeout(() => { af.style.borderColor = ''; af.placeholder = 'e.g. V5 Room 203, MMU Cyberjaya'; }, 3000);
-      return;
-    }
+    const customerName  = document.getElementById('field-name').value.trim()  || 'Customer';
+    const customerPhone = document.getElementById('field-phone').value.trim() || '-';
+    const customerSlot  = orderType === 'preorder'  ? (document.getElementById('field-slot')?.value || '') : null;
+    const customerAddr  = orderType === 'delivery'  ? (document.getElementById('field-address')?.value.trim() || '') : null;
+    const deliverySlot  = orderType === 'delivery'  ? (document.getElementById('field-delivery-slot')?.value || '') : null;
 
     try {
-      // Compress screenshot further to ~50KB max for Firestore
-      const canvas = document.createElement('canvas');
-      const img = new Image();
-      await new Promise(resolve => {
-        img.onload = resolve;
-        img.src = 'data:image/jpeg;base64,' + screenshotBase64;
-      });
-      const MAX = 400;
-      let w = img.width, h = img.height;
-      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
-      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const smallBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+      // Upload screenshot to Firebase Storage
+      let screenshotUrl = null;
+      if (screenshotFile) {
+        const storageRef = ref(storage, 'oya_payments/' + Date.now() + '_' + (currentUser?.uid || 'guest') + '.jpg');
+        await uploadBytes(storageRef, screenshotFile);
+        screenshotUrl = await getDownloadURL(storageRef);
+      }
 
       const foodTotal    = grandTotal;
       const serviceFee   = 0;
@@ -3456,13 +3431,15 @@
       const riderEarning = 0;
 
       const orderData = {
-        code:              'SOD-' + String(Date.now()).slice(-4),
-        name:              customerName,
-        phone:             customerPhone,
-        type:              orderType,
-        address:           customerAddress,
-        items:             cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
-        total:             grandTotal,
+        code:          'SOD-' + String(Date.now()).slice(-4),
+        name:          customerName,
+        phone:         customerPhone,
+        type:          orderType,
+        address:       customerAddr,
+        slot:          customerSlot,
+        deliverySlot:  deliverySlot,
+        items:         cart.map(i => ({ emoji: i.emoji, name: i.name, price: i.price, qty: i.qty, custom: i.custom || 'Standard', note: i.note || '' })),
+        total:         grandTotal,
         foodTotal,
         discount,
         serviceFee,
@@ -3470,16 +3447,16 @@
         platformComm,
         merchantNett,
         riderEarning,
-        status:            'new',
-        rider:             null,
-        paymentMethod:     'TNG',
-        paymentStatus:     'ai_verified',
-        merchantId:        'soy_oden',
-        merchantName:      'Oya',
-        userEmail:         currentUser ? currentUser.email : null,
-        userName:          currentUser ? currentUser.displayName : null,
-        screenshotBase64:  smallBase64,
-        timestamp:         serverTimestamp(),
+        status:        'new',
+        rider:         null,
+        paymentMethod: 'TNG',
+        paymentStatus: 'paid',
+        merchantId:    'soy_oden',
+        merchantName:  'Oya',
+        userEmail:     currentUser ? currentUser.email : null,
+        userName:      currentUser ? currentUser.displayName : null,
+        screenshotUrl: screenshotUrl,
+        timestamp:     serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
@@ -3493,7 +3470,7 @@
       }
       startStatusTracking(currentOrderId);
       goTo('success');
-      cart = []; screenshotBase64 = null; paymentVerified = false;
+      cart = []; screenshotFile = null; paymentVerified = false;
       updateCartUI();
       document.getElementById('success-order-code').textContent = 'Order #' + orderData.code;
 
@@ -3527,14 +3504,20 @@
   window.startStatusTracking = startStatusTracking;
 
   function renderLiveStatus(order) {
-    const allSteps = [
+    const isDelivery = order.type === 'delivery';
+    const allSteps = isDelivery ? [
+      { key: 'new',        icon: '🧾', label: 'Order Confirmed',  desc: 'Payment received — thank you!' },
+      { key: 'preparing',  icon: '👨‍🍳', label: 'Preparing',        desc: 'Your order is being made fresh' },
+      { key: 'delivering', icon: '🛵', label: 'On the Way!',       desc: 'Rider is heading to you now 🚀' },
+      { key: 'done',       icon: '🎉', label: 'Delivered!',        desc: 'Enjoy your order from MIDI! 🍵' },
+    ] : [
       { key: 'new',        icon: '🧾', label: 'Order Confirmed',  desc: 'Payment received — thank you!' },
       { key: 'preparing',  icon: '👨‍🍳', label: 'Preparing',        desc: 'Your order is being made fresh' },
       { key: 'ready',      icon: '✅', label: 'Ready!',            desc: 'Please come collect at counter 😊' },
       { key: 'done',       icon: '🎉', label: 'Done!',             desc: 'Enjoy your order from MIDI! 🍵' },
     ];
     const steps = allSteps;
-    const statusOrder = ['new','preparing','ready','done'];
+    const statusOrder = isDelivery ? ['new','preparing','delivering','done'] : ['new','preparing','ready','done'];
     const curIdx = statusOrder.indexOf(order.status);
 
     document.getElementById('live-status-steps').innerHTML = steps.map(step => {
@@ -3693,7 +3676,7 @@
     card.id = 'hist-card-' + id;
     card.style.animationDelay = (idx * 0.06) + 's';
 
-    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'Ready!', done:'Done' };
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way!', done:'Done' };
     const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
     const typeIcon = order.type === 'delivery' ? '📋' : '🛍';
     const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('en-MY', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
@@ -3738,7 +3721,7 @@
   window.toggleHistCard = toggleHistCard;
 
   function updateHistoryCardStatus(id, order) {
-    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'Ready!', done:'Done' };
+    const statusLabels = { new:'Confirmed', preparing:'Preparing', ready:'Ready!', delivering:'On the Way!', done:'Done' };
     const statusClass  = { new:'status-new', preparing:'status-preparing', ready:'status-ready', delivering:'status-delivering', done:'status-done' };
     const badge = document.getElementById('hist-status-badge-' + id);
     if (badge) {
@@ -3751,14 +3734,20 @@
   function renderHistSteps(id, order) {
     const el = document.getElementById('hist-steps-' + id);
     if (!el) return;
-    const allSteps = [
+    const isDelivery = order.type === 'delivery';
+    const allSteps = isDelivery ? [
+      { key:'new',        icon:'🧾', label:'Order Confirmed' },
+      { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
+      { key:'delivering', icon:'🛵', label:'On the Way!' },
+      { key:'done',       icon:'🎉', label:'Delivered!' },
+    ] : [
       { key:'new',        icon:'🧾', label:'Order Confirmed' },
       { key:'preparing',  icon:'👨‍🍳', label:'Preparing' },
       { key:'ready',      icon:'✅', label:'Ready!' },
       { key:'done',       icon:'🎉', label:'Done!' },
     ];
     const steps = allSteps;
-    const statusOrder = ['new','preparing','ready','done'];
+    const statusOrder = isDelivery ? ['new','preparing','delivering','done'] : ['new','preparing','ready','done'];
     const curIdx = statusOrder.indexOf(order.status);
 
     el.innerHTML = steps.map(step => {
@@ -4302,16 +4291,12 @@
   function updateMadModalSelection(type) {
     const btnP = document.getElementById('mad-modal-btn-pickup');
     const btnD = document.getElementById('mad-modal-btn-delivery');
-    const btnR = document.getElementById('mad-modal-btn-preorder');
     const chkP = document.getElementById('mad-modal-check-pickup');
     const chkD = document.getElementById('mad-modal-check-delivery');
-    const chkR = document.getElementById('mad-modal-check-preorder');
     if (btnP) btnP.classList.toggle('selected', type === 'pickup');
     if (btnD) btnD.classList.toggle('selected', type === 'delivery');
-    if (btnR) btnR.classList.toggle('selected', type === 'preorder');
     if (chkP) chkP.style.display = type === 'pickup'   ? 'block' : 'none';
     if (chkD) chkD.style.display = type === 'delivery' ? 'block' : 'none';
-    if (chkR) chkR.style.display = type === 'preorder' ? 'block' : 'none';
   }
 
   function confirmMadOrderType() {
@@ -4319,13 +4304,11 @@
     madOrderType = madPendingOrderType;
     const co = document.getElementById('mad-checkout-method');
     const ci = document.getElementById('mad-checkout-icon');
-    const labelMap = { pickup: 'Pick Up', delivery: 'Delivery', preorder: 'Pre-order' };
-    const iconMap  = { pickup: '🛍', delivery: '🛵', preorder: '📋' };
-    if (co) co.textContent = labelMap[madOrderType] || 'Pick Up';
-    if (ci) ci.textContent = iconMap[madOrderType]  || '🛍';
+    if (co) co.textContent = madOrderType === 'pickup' ? 'Pick Up' : 'Delivery';
+    if (ci) ci.textContent = madOrderType === 'pickup' ? '🛍' : '🛵';
     const cashBtn = document.getElementById('mad-pay-cash-btn');
     const cashNote = document.getElementById('mad-cash-note');
-    if (madOrderType === 'delivery' || madOrderType === 'preorder') {
+    if (madOrderType === 'delivery') {
       if (cashBtn) cashBtn.style.display = 'none';
       if (cashNote) cashNote.style.display = 'none';
       madPayMethod = 'tng';
